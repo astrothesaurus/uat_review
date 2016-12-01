@@ -4,13 +4,10 @@ UAT review frontend Perl
 This repository contains the Perl CGI scripts, JavaScript and CSS files for the UAT review webapp.
 
 TODO:
-
+* Taint checking
 * Update references to Corichi - switch to localhost
-
 * Tidy code - remove debugging & redundant commented code
-
 * Make data available - metadata, thesaurus.
-
 * Update references to thesaurus graph - from 2016R3rc1 to 2016R3
 
 
