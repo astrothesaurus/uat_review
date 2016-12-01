@@ -1,0 +1,31 @@
+.mt-1 {
+	margin-top: 1em;
+}
+.show-hide {
+	display: none;
+}
+.odd-row {
+  background-color:#eee;
+}
+.even-row{
+  background-color:#fff;
+}
+.numberCircle {
+    border-radius: 50%;
+
+    width: 54px;
+    height: 54px;
+    padding: 8px;
+
+    background: #00d;
+    border: 2px solid #00d;
+    color: #fff;
+    text-align: center;
+
+    font: Arial, sans-serif;
+	font-size: 1.6em;
+	display:inline-block;
+}
+a.termlist {
+    color: #fff;
+}
