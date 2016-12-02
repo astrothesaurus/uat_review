@@ -59,7 +59,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
 SELECT DISTINCT ?term ?label WHERE 
  {
-  graph <http://data.iop.org/thesaurus/2016R3rc1> {
+  graph <http://data.iop.org/thesaurus/2016R3> {
   ?term skos:prefLabel ?label .
   filter(lcase(str(?label)) = lcase("__REGEX__"))
  }
@@ -275,7 +275,7 @@ my (%terms, @terms, @status, %source);
 		
 	my ($terms, $status) = get_annotations($doi);
 	if ($terms) {
-		my $lookup = get("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3rc1&all=1");
+		my $lookup = get("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
 		if ($lookup) {
 			$lookup =~ s|[\[\]]||gs;
 			my @thes_terms = $lookup =~ m|"(.*?)"[,\]]|gs;
@@ -498,7 +498,7 @@ elsif (@entities || $validated ||
 #		foreach (@correct_terms) {
 #			next unless $_;
 #			# check for new term
-#			my $term = get("http://localhost/cgi-bin/thes_query.pl?thes=2016R3rc1&term=$_");
+#			my $term = get("http://localhost/cgi-bin/thes_query.pl?thes=2016R3&term=$_");
 #			push @new_terms, $_ unless ($term);
 #		}
 		if (scalar(@new_terms) > 0) {
@@ -630,7 +630,7 @@ sub format_annots {
 			foreach (@terms) {
 				my $s = $source{$_};
 				unless ($s) {
-					my $source = get("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3rc1&term=$_");
+					my $source = get("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
 					$s = $source =~ m|astro| ? "UAT" : "IOP";
 				}
 				if ($fb) {
