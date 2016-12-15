@@ -134,7 +134,7 @@ my $synonym_template = "<li>__SYNONYM__</li>\n";
 
 my $regex = $q->param('term') || 0;
 
-my $title = "IOPthes browser";
+my $title = "Thesaurus browser";
 $title .= ": $regex" if $regex;
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print $q->start_html(

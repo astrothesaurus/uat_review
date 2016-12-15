@@ -17,6 +17,7 @@ $ua->from('michael.roberts@iop.org');
 
 my $doi;
 my $search;
+my $submit;
 my ($term1, $term2, $term3, $term4, $term5, $term6, $term7, $term8, $term9, $term10,
 	$term11, $term12, $term13, $term14, $term15, $term16, $term17, $term18, $term19, $term20,
 	$term21, $term22, $term23, $term24, $term25, $term26, $term27, $term28, $term29, $term30);
@@ -27,24 +28,7 @@ my $validated;
 my @entities;
 my @wrong_entities;
 my @new_terms;
-# my $cs;
-# my $pps;
 my $list;
-
-#	my $dev_cs = "http://dev.services.iop.org/content-service";
-#	my $live_cs = "http://services.iop.org/content-service";
-#	my $dev_pps = "http://test.pps.iop.org";
-#	my $live_pps = "http://pps.iop.org";
-
-#	my $metadata_url = "__CS__/article/doi/__DOI__?header_accept=application%2Fvnd.iop.org.header%2Bxml";
-#	my $annot_url = "__CS__/article/doi/__DOI__?header_accept=application%2Fvnd.iop.org.annotation%2Bxml";
-#	# my $tmx_url = "__CS__/article/doi/__DOI__?header_accept=application%2Fvnd.iop.org.tmx%2Bxml";
-#	my $tmx_url = "http://corichi/cgi-bin/make_tmx.pl?force=1&doi=__DOI__";
-#	my $pdf_url = "__CS__/article/doi/__DOI__?header_accept=application%2Fpdf";
-#	my $header_tmx_url = "__CS__/article/doi/__DOI__?header_accept=application%2Fvnd.iop.org.header%2Btmx%2Bxml";
-#	my $xcas_url = "__CS__/content/urn:iop.org:id:annotation:__DOC_ID__";
-#	my $make_annot_url = "__PPS__/release/article/doi?doi=__DOI__&plan=IOPthes-categorize-AP";
-
 
 my $output = "text";
 my $endpoint = "http://localhost:8080/sparql/";
@@ -92,8 +76,6 @@ WHERE {
 limit 1
 EOQ
 
-# TODO dedupe annotation_query and annots_query
-
 my $annotation_query = <<EOQ;
 PREFIX ioprdf: <http://rdf.iop.org/>
 SELECT ?annot ?label ?status
@@ -107,45 +89,6 @@ WHERE {
 }
 order by ?annot
 EOQ
-
-my $annots_query = <<EOQ;
-PREFIX ioprdf: <http://rdf.iop.org/>
-SELECT ?label ?status
-WHERE {
-	graph <http://data.iop.org/uat_review> 
-	{
-	 <http://dx.doi.org/__DOI__> ioprdf:hasAnnotation ?annot .
-	 ?annot ioprdf:hasTermLabel ?label .
-	 ?annot ioprdf:hasStatus ?status .
-	}
-}
-order by ?annot
-EOQ
-
-#	my $review_query = <<EOQ;
-#	PREFIX ioprdf: <http://rdf.iop.org/>
-#	SELECT ?r
-#	WHERE {
-#		graph <http://data.iop.org/leaderboard> 
-#		{
-#		 <http://rdf.iop.org/email/__USER__> ioprdf:hasDoneReview ?r .
-#			 ?r ioprdf:hasDOI <http://dx.doi.org/__DOI__>
-#		}
-#	}
-#	EOQ
-
-#	my $stats_query = <<EOQ;
-#	PREFIX ioprdf: <http://rdf.iop.org/>
-#	PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-#
-#	SELECT ?h ?l ?v WHERE {
-#	 graph <http://data.iop.org/leaderboard> {
-#		__ID__ <http://rdf.iop.org/hasHits> ?h .
-#		__ID__ <http://rdf.iop.org/hasLuxidCount> ?l .
-#		__ID__ <http://rdf.iop.org/hasValidatedCount> ?v .
-#	}
-#	}
-#	EOQ
 
 my $annot_rdf_template = <<EOT;
 <http://dx.doi.org/__DOI__> <http://rdf.iop.org/hasAnnotation> <__ANNOT_ID__> .
@@ -183,6 +126,11 @@ print "<div class=\"container\">\n";
 
 if ($q->param) {
 	$search = $q->param('search_term') || 0;
+	$submit = $q->param('submit') || 0;
+	unless ($submit) {
+		$submit = $q->param('agree') ? 'Agree' : 0;
+		$submit = $q->param('disagree') ? 'Disagree' : 0;
+	}
 	$doi = $q->param('doi') || 0;
 	$term1 = $q->param('term1') || 0;
 	$term2 = $q->param('term2') || 0;
@@ -223,10 +171,8 @@ if ($q->param) {
 if ($search) {
 	my $result = get("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
 	if ($result) {
-		# print $q->p($result) . "\n";
 		my @results = $result =~ m|"([^"]+)"[,\]]|gs;
 		if (scalar(@results) == 1) {
-			#	$doi = $results[0];
 			if ($search =~ m|^10\.|) {
 				$doi = $search;
 			}
@@ -253,7 +199,6 @@ if ($search) {
 		$doi = 0;
 		$search = 0;
 		print $q->h1("No results returned from search.") . "\n";
-		# print_form();
 	}
 }
 
@@ -263,11 +208,10 @@ if (scalar(@entities)>0) {
 }
 
 my $ref = $ENV{'HTTP_REFERER'};
-my $rem_host = $q->remote_host(); #ENV{'REMOTE_HOST'};
+my $rem_host = $q->remote_host();
 print "<!-- rem_host: $rem_host -->\n";
 print "<!-- " . Dump . " -->\n";
 my (%terms, @terms, @status, %source);
-# if ($validated) 
 {
 	# invert selection
 	# 'wrong' entities picked in feedback, 
@@ -280,18 +224,14 @@ my (%terms, @terms, @status, %source);
 			$lookup =~ s|[\[\]]||gs;
 			my @thes_terms = $lookup =~ m|"(.*?)"[,\]]|gs;
 			my @sources = $lookup =~ m|<([^>]+)>|gs;
-			# print $q->p(scalar(@thes_terms) . " terms in array") . "\n";
-			# print $q->p(scalar(@sources) . " sources in array") . "\n";
 			for my $i (0..$#thes_terms) {
 				my ($t, $s) = ($thes_terms[$i], $sources[$i]);
-				# print $q->p("$t, $s") . "\n";
 				$source{$t} = $s =~ m|astro| ? "UAT" : "IOP";
 			}
 		}
 
 		@terms = @$terms;
 		@status = @$status;
-		# print $q->p(scalar(@terms) . " terms | " . scalar(@status) . " status before missed terms") ."\n";
 		foreach ($term1, $term2, $term3, $term4, $term5, $term6, $term7, $term8, $term9, $term10,
 				$term11, $term12, $term13, $term14, $term15, $term16, $term17, $term18, $term19, $term20,
 				$term21, $term22, $term23, $term24, $term25, $term26, $term27, $term28, $term29, $term30) {
@@ -299,34 +239,30 @@ my (%terms, @terms, @status, %source);
 				push @terms, $_;
 				push @status, "Missed";
 				$terms{$_} = "Missed";
-				$source{$_} = "*" unless $source{$_};
+				unless ($source{$_}) {
+					$source{$_} = "New";
+					push @new_terms, $_;
+				}
 			}
 		}
-		# print $q->p(scalar(@terms) . " terms | " . scalar(@status) . " status after missed terms") . "\n";
-			for my $i (0..$#terms) {
-				# print $q->p("No status for term " . $terms[$i]) . "\n" unless $status[$i];
-				# print $q->p( $terms[$i] . " | " . $status[$i]) . "\n";
-				my $t = $terms[$i];
-				next if $t =~ m/^\s*$/;
-				my $incorrect;
-				if ($validated) {
-					foreach my $w (@wrong_entities) {
-						 if ($t eq $w) {
-							$incorrect = 1;
-							$status[$i] = "Incorrect";
-							last;
-						}
-					}
-					unless ($incorrect) {
-						# print $q->p($status[$i]) ."\n";
-						# push @entities, $t;
-						$status[$i] = "Correct" unless $status[$i] =~ m"Missed";
-						# print $q->p($status[$i]) ."\n";
+		for my $i (0..$#terms) {
+			my $t = $terms[$i];
+			next if $t =~ m/^\s*$/;
+			my $incorrect;
+			if ($validated) {
+				foreach my $w (@wrong_entities) {
+					 if ($t eq $w) {
+						$incorrect = 1;
+						$status[$i] = "Incorrect";
+						last;
 					}
 				}
-				$terms{$t} = $status[$i];
-				# print $q->p( $terms[$i] . " | " . $status[$i]) . "\n";
+				unless ($incorrect) {
+					$status[$i] = "Correct" unless $status[$i] =~ m"Missed";
+				}
 			}
+			$terms{$t} = $status[$i];
+		}
 		
 		pop @entities if $entities[0] =~ m/^\s*$/;
 		print "<!-- Stored Terms: " . join("\n", @terms) . "-->\n";
@@ -339,43 +275,7 @@ if ($doi && $doi !~ m/\d{2}\.\d{4}\//) {
 	print $q->h1("DOI not valid: $doi") . "\n";
 	$doi = 0;
 }
-if ($q->param("submit") eq "Submit new thesaurus terms") {
-	# never get to this point?
-	print $q->h2("Thank you. New thesaurus term suggestion received.") . "\n";
-	my %param = map { $_ => get_data( $_ ) } $q->param;
-	my $dump;
-	my $username = $param{'username'} ? $param{'username'} : "Anonymous";
-	my $source = $param{'doi'} ? "http://dx.doi.org/" . $param{'doi'} : "Unknown";
-	my $date = strftime("%d/%m/%Y", localtime(time));
-	$dump .= "Username: $username\n";
-	# Term				$param{$term}
-	# Synonym			Amalgamate array
-	# BT				Amalgamate array
-	# NT				--"--
-	# RT				--"--
-	# Source article	$source
-	# Suggester			$username
-	# Status			"Candidate"
-	# Status date		$date
-	# Comments			Blank
-	# 
-
-	# TODO Integrate with Github
-	
-	$dump .= "Article:  $source\n";
-	my $to = "michael.roberts\@iop.org";
-	my $from = "uat_review_system\@corichi.iop.org";
-	unless (($live) && ($username eq "domex")) {
-		&email_alert(
-			"None",
-			$dump,
-			"New thesaurus terms suggested",
-			$to,
-			$from
-		);
-	}
-}
-elsif (@entities || $validated || 
+if (@entities || $validated || 
 		$term1 || $term2 || $term3 || $term4 || $term5 || $term6 || $term7 || $term8 || $term9 || $term10 ||
 		$term11 || $term12 || $term13 || $term14 || $term15 || $term16 || $term17 || $term18 || $term19 || $term20 ||
 		$term21 || $term22 || $term23 || $term24 || $term25 || $term26 || $term27 || $term28 || $term29 || $term30) {
@@ -386,10 +286,7 @@ elsif (@entities || $validated ||
 	}
 	if ($validated) {
 		print $q->h1(span({-class=>'label label-success'}, "Feedback received")) . "\n";
-		my  ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
-		my $timestamp;
-		$timestamp .= sprintf("%02d", $_) foreach ($year+1900,$mon+1,$mday,$hour,$min,$sec);
-		$timestamp .= "_";
+		my $timestamp = strftime("%Y%m%d%H%M%S", localtime(time)) . "_" . int(rand(9999));
 		my (@correct_terms, @incorrect_terms, @missed_terms);
 		foreach my $t (@terms) {
 			push @correct_terms, $t if $terms{$t} eq "Correct";
@@ -398,20 +295,18 @@ elsif (@entities || $validated ||
 			print $q->h1("Term not validated: $t") . "\n" if $terms{$t} eq "Pending";
 		}
 		
-		my $subject = "Feedback for article $doi received";
+		my $subject = "Feedback for article $doi received ($timestamp)";
 		my $message;
-		# want to check whether this is an update or not
-#		my $r_q = $review_query;
-#		$r_q =~ s/__USER__/$username/;
-#		$r_q =~ s/__DOI__/$doi/;
-#		$r_q =~ s/\@/_at_/;
-#		my $r_data = sparqlQuery($r_q, $endpoint, $output);
-#		my @r_data = split("[\n\r]", $r_data);
-#		$message .= "\nUpdated review detected\n" if scalar(@r_data) > 1;
-		$message = join("\n", "Username:", "  $username", "", "Correct terms:", "  " . join("\n  ", @correct_terms), "");
-		$message = join("\n", "Missed terms:", "  " . join("\n  ", @missed_terms), "");
-		# $message .= join("\n  ", "Wring terms:", @wrong_entities) . "\n" if scalar(@wrong_entities) > 0;
-		$message .= join("\n  ", "Incorrect terms:", @incorrect_terms) . "\n" if scalar(@wrong_entities) > 0;
+		
+		$message = join("\n", "Username:", "  $username", "");
+		unless ($submit =~ m|agree|i) {
+			$message .= join("\n", "Correct terms:", "  " . join("\n  ", @correct_terms), "");
+			$message .= join("\n", "Missed terms:", "  " . join("\n  ", @missed_terms), "");
+			$message .= join("\n  ", "Incorrect terms:", @incorrect_terms) . "\n" if scalar(@wrong_entities) > 0;
+		}
+		else {
+			$message .= "Feedback review: $submit\n";
+		}
 		$message .= join("\n", "", "Comments:\n  $comments") if $comments;
 		my $from = "uat_feedback\@corichi.iop.org";
 		unless (($live) && ($username eq "domex")) {
@@ -425,9 +320,14 @@ elsif (@entities || $validated ||
 		
 		my $docid = format_metadata($doi);
 		
-		print $q->p("Thank you for confirming the following entities are correct:", ul(li(\@correct_terms))) . "\n" if scalar(@correct_terms) > 0;
-		print $q->p("Thank you for confirming the following entities were missed:", ul(li(\@missed_terms))) . "\n" if scalar(@missed_terms) > 0;
-		print $q->p("Thank you for confirming the following entities are inappropriate:", ul(li(\@incorrect_terms))) . "\n" if scalar(@incorrect_terms) > 0;
+		unless ($submit =~ m|agree|i) {
+			print $q->p("Thank you for confirming the following entities are correct:", ul(li(\@correct_terms))) . "\n" if scalar(@correct_terms) > 0;
+			print $q->p("Thank you for confirming the following entities were missed:", ul(li(\@missed_terms))) . "\n" if scalar(@missed_terms) > 0;
+			print $q->p("Thank you for confirming the following entities are inappropriate:", ul(li(\@incorrect_terms))) . "\n" if scalar(@incorrect_terms) > 0;
+		}
+		else {
+			print $q->p("Thank you for providing review of the feedback received.") . "\n";
+		}
 		if ($comments) {
 			print $q->p("Comment received:") . "\n";
 			print $q->p($comments) . "\n";
@@ -441,40 +341,43 @@ elsif (@entities || $validated ||
 		my $data = sparqlQuery($s_q, $endpoint, $output, $limit);
 			$s_q =~ s/</&lt;/g;
 			$s_q =~ s/>/&gt;/g;
-		# print $q->p($s_q) . "\n";
 		my @data = split("[\n\r]", $data);
-		for my $i (1..$#data) {
-			$data[$i] =~ s/"//g;
-			$data[$i] =~ s/[<>]//g;
-			my ($annot_id, $term, $status) = split("\t", $data[$i]);
-
-			my $t = $annot_rdf_template;
-			$t =~ s/__DOI__/$doi/gs;
-			$t =~ s/__ANNOT_ID__/$annot_id/gs;
-			$t =~ s/__TERM__/$term/gs;
-			$t =~ s/__STATUS__/$status/gs;
-			delete_4store_data($t, "http://data.iop.org/uat_review");
-
+		unless ($submit =~ m|agree|i) {
+			for my $i (1..$#data) {
+				$data[$i] =~ s/"//g;
+				$data[$i] =~ s/[<>]//g;
+				my ($annot_id, $term, $status) = split("\t", $data[$i]);
+				my $t = $annot_rdf_template;
+				$t =~ s/__DOI__/$doi/gs;
+				$t =~ s/__ANNOT_ID__/$annot_id/gs;
+				$t =~ s/__TERM__/$term/gs;
+				$t =~ s/__STATUS__/$status/gs;
+				delete_4store_data($t, "http://data.iop.org/uat_review");
+			}
 		}
 		# make annotation review event
-		my $timestamp = strftime("%Y%m%d%H%M%S", localtime(time)) . "_" . int(rand(9999));
 		my $datetime = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
 		$username =~ s/\@/_at_/;
 		my $rdf = "<http://rdf.iop.org/email/$username> <http://rdf.iop.org/hasDoneReview> <http://rdf.iop.org/AnnotationReview/$timestamp> .\n";
 		$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasDOI> <http://dx.doi.org/$doi> . \n";
 		$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasDateTime> \"$datetime\"^^<http://www.w3.org/2001/XMLSchema#dateTime> . \n";
-		# replace terms with validated term list
-		my $annot_count;
-		foreach my $term (@terms) {
-			$annot_count++;
-			my $status = $terms{$term};
-			my $t = $annot_rdf_template;
-			my $annot_id = "http://dx.doi.org/$doi/term/" . sprintf("%04d", $annot_count);
-			$t =~ s/__DOI__/$doi/gs;
-			$t =~ s/__ANNOT_ID__/$annot_id/gs;
-			$t =~ s/__TERM__/$term/gs;
-			$t =~ s/__STATUS__/$status/gs;
-			$rdf .= $t;
+		unless ($submit =~ m|agree|i) {
+			# replace terms with validated term list
+			my $annot_count;
+			print $q->p(scalar(@terms) . " validated terms found.") . "\n";
+			foreach my $term (@terms) {
+				unless ($rdf =~ m|"$term"|) {
+					$annot_count++;
+					my $status = $terms{$term};
+					my $t = $annot_rdf_template;
+					my $annot_id = "http://dx.doi.org/$doi/term/" . sprintf("%04d", $annot_count);
+					$t =~ s/__DOI__/$doi/gs;
+					$t =~ s/__ANNOT_ID__/$annot_id/gs;
+					$t =~ s/__TERM__/$term/gs;
+					$t =~ s/__STATUS__/$status/gs;
+					$rdf .= $t;
+				}
+			}
 		}
 		$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasComment> \"".uri_escape_utf8($comments) . "\"";
 		my $data_ep = "http://corichi:8080/data/";
@@ -490,38 +393,28 @@ elsif (@entities || $validated ||
 		}
 		else {
 			print $q->comment("Data uploaded.") . "\n";
-			# print $q->p($content) . "\n";
 		}
 
-		
-#		my @new_terms;
-#		foreach (@correct_terms) {
-#			next unless $_;
-#			# check for new term
-#			my $term = get("http://localhost/cgi-bin/thes_query.pl?thes=2016R3&term=$_");
-#			push @new_terms, $_ unless ($term);
-#		}
 		if (scalar(@new_terms) > 0) {
+			print $q->p("Sending data to Github for " . join(", ", @new_terms)) . "\n";
 			# integrate with Github here
 			my $ua = LWP::UserAgent->new;
-			# $ua->credentials('api.github.com:443', '', 'gorbynet', 'Ttlsh1wwyagb');
 			my $github_url = "https://api.github.com/repos/gorbynet/Perl_scripts/issues";
-			my $title = "New thesaurus term suggestion ";
-			my $body = join(" ", $username, $comments);
+			my $title = "New thesaurus term suggestion: ";
+			my $body = "Review ID: " . $timestamp;
+			$body .= " Comments: $comments" if $comments;
 			foreach my $t (@new_terms) {
-				my $deposit = '{"title":"' . $title . " " . $t ."\", \"body\":\"" . $body . "\"}";
+				my $deposit = join("\n", '{', '"title":"' . $title . ' ' . $t . '",',  '"body":"' . $body . '"'. '}');
 				my $req = HTTP::Request->new('POST', $github_url, [], $deposit);
 				$req->authorization_basic('gorbynet', 'Ttlsh1wwyagb');
-				# $response = $ua->post($github_url, Content=>$deposit);
 				my $response = $ua->request($req);
 				unless ($response->is_success()) {
-					print $q->h1("Github issue upload failed.") . "\n";
-					print $q->p(Dumper($deposit)) . "\n";
-					print $q->p(Dumper($response)) . "\n";
+					print STDERR "Github issue upload failed." . "\n";
+					print STDERR Dumper($deposit) . "\n";
+					print STDERR Dumper($response) . "\n";
 				}
 				else {
-					print $q->p("Github Data uploaded.") . "\n";
-					# print $q->p($content) . "\n";
+					print $q->p("Thesaurus suggestion loaded to Github.") . "\n";
 				}
 			}
 		}
@@ -558,7 +451,7 @@ sub print_validation_form {
 		my $xcas;
 		my ($last_annotated);
 		my $docid = format_metadata($doi);
-		my $a = $annots_query;
+		my $a = $annotation_query;
 		$a =~ s/__DOI__/$doi/;
 		my $annots = sparqlQuery($a, $endpoint, $output, $limit);
 		if ($annots) {
@@ -581,22 +474,18 @@ sub format_metadata {
 	$title =~ s|"||gs;
 	$abstract =~ s|"||gs;
 	$citation =~ s|"||gs;
-	# $citation =~ s|$issn|$journals{$issn}|;
-	print $q->h2($title) . "\n"; # encode("utf8", )
-	print $q->p($citation) . "\n"; # encode("utf8", )
-	print $q->p($abstract) . "\n"; # encode("utf8", )
+	print $q->h2($title) . "\n";
+	print $q->p($citation) . "\n";
+	print $q->p($abstract) . "\n";
 	my $iops_url = "http://iopscience.iop.org/article/$doi";
-	# print $q->div({-class=>'btn btn-default'}, a({-href=>"$iops_url", -target=>'_blank'}, "Go to article on IOPscience")) . "\n"; #/article 
 	print $q->p("Link to article:", a({-href=>"$iops_url", -target=>'_blank'}, "http://dx.doi.org/$doi")) . "\n";
 	print $q->p(a({-href=>"uat_feedback_ui.pl"}, b("Search for another article"))) . "\n" unless $list;
-	# print $q->p($doi) . "\n"; # encode("utf8", )
 	return join("/", $issn);
 }
 
 sub format_annots {
 	my ($v) = @_;
 	print "<!-- Validated? $v -->\n";
-	# my @annots = split("[\n\r]", $a);
 
 	my %validated_terms;
 	my $fb = $terms{$terms[0]} =~ m/Pending/ ? 0 : 1;
@@ -614,7 +503,7 @@ sub format_annots {
 		else {
 			print "<div class=\"col-md-6\" >\n";
 		}
-		# 2
+
 		unless ($fb) { 
 			print $q->h3(span({-class=>'label label-info'}, "Step 1: Please tick all the terms that are", u("inappropriate"))) . "\n";
 		}
@@ -700,9 +589,39 @@ sub format_annots {
 		print "</div>"; # row
 		
 		print $q->hidden(-name=>'doi', -value=>$doi);
-		# print $q->hidden(-name=>'live', -value=>$live);
 		print $q->hidden(-name=>'validated', -id=>'validated', -value=>$v, -override => 1 );
 		print $q->div({-style=>'text-align: right', -class=>'mt-1'},submit(-class=>'btn btn-success btn-lg mt-1', -name=>'submit', -value=>'Submit annotation feedback')) unless $fb;
+		print $q->div({-style=>'clear: both;'})."\n";
+		print "</div>\n"; # col
+	}
+	else {
+		print "<div class=\"col-md-6, input-group\">\n";
+		print $q->h3(span({-class=>'label label-info'}, "Do you agree with the feedback already given?")) . "\n";
+
+		print "<div class=\"row mt-1\">\n";
+		print $q->div({-class=>'col-md-3'},"Comments:");
+		print $q->div({-class=>'col-md-3'},textarea(-name=>'comments', -rows=>'5', -columns=>'48'));
+		print "</div>\n"; # row mt-1
+		print "<div class=\"row mt-1\">\n";
+		print "<div class=\"col-md-6\">\n";
+		print $q->h3(span({-class=>'label label-info'}, "Please provide contact information.")) . "\n";
+		print "</div>\n"; #col md 6
+		print "</div>\n"; #row mt-1
+		
+		if ($v) {
+			print "<div class=\"row mt-1\" style=\"background: orange\">" unless $username;
+		}
+		else {
+			print "<div class=\"row mt-1\">\n";
+		}
+			print $q->div({-class=>'col-md-3'},"Username/email:");
+			print $q->div({-class=>'col-md-3'},textfield(-name=>'username',-size=>50,-id=>'username'));
+		print "</div>"; # row
+		
+		print $q->hidden(-name=>'doi', -value=>$doi);
+		print $q->hidden(-name=>'validated', -id=>'validated', -value=>$v, -override => 1 );
+		
+		print $q->div({-style=>'text-align: right', -class=>'mt-1'},submit(-class=>'btn btn-danger btn-lg mt-1', -name=>'submit', -value=>'Disagree'),submit(-class=>'btn btn-success btn-lg mt-1', -name=>'submit', -value=>'Agree'));
 		print $q->div({-style=>'clear: both;'})."\n";
 		print "</div>\n"; # col
 	}
@@ -711,22 +630,17 @@ sub format_annots {
 }
 
 sub print_form {
-	# print $q->hr();
 	print $q->h2("Please input search term")."\n";
 	print $q->p("You can search for title, author or DOI")."\n";
 	print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"uat_feedback_ui.pl");
-	print $q->p("Search term: ", textfield(-name=>'search_term', -id=>'search_term', -type=>'text', -rows=>1, -columns=>40, -override=>1)) . "\n"; #, checkbox('live', 0, 1, " Live?")
-	# print $q->checkbox('live', 0, 1, " Live?") . "\n";
+	print $q->p("Search term: ", textfield(-name=>'search_term', -id=>'search_term', -type=>'text', -rows=>1, -columns=>40, -override=>1)) . "\n"; 
 	print $q->submit(-name=>'submit', -value=>'Submit') . "\n";
 	print $q->end_form;
 }
 
 sub email_alert {
 	my ($id, $feedback, $subject, $to, $from) = @_;
-	# my $to = 'ThesaurusWorkingGroup@iop.org';
-	# my $from = 'feedback@corichi.iop.org';
-	# my $subject = "Feedback for article $id received";
-	# $subject .= " (dev)" unless $live;
+
 	my $message = "$feedback";
 
 	my $msg = MIME::Lite->new(
@@ -745,7 +659,6 @@ sub search_thes {
 	my $e = $exact_query;
 	$e =~ s/__REGEX__/$term/g;
 	my $rdf_out = sparqlQuery($e, $endpoint, $output, $limit);
-	#	print $rdf_out ."\n";
 	my @terms = split("[\n\r]", $rdf_out);
 	print $q->comment("$term\n". join("\n", @terms) ). "\n";
 	return 1 if scalar(@terms) == 2;
@@ -769,8 +682,6 @@ sub sparqlQuery(@args) {
         }
         $query=join("&", @fragments);
         my $sparqlURL="${baseURL}?$query";
-		# print "$sparqlURL\n";
-        # my $ua = LWP::UserAgent->new;
         my $req = HTTP::Request->new(GET => $sparqlURL);
         my $res = $ua->request($req);
         my $str=$res->content;
@@ -797,65 +708,6 @@ sub get_terms {
 	return $str;
 }
 
-#	sub update_leaderboard {
-#		my ($username, $doi, $validated_terms) = @_;
-#		print $q->comment("Updating leaderboard: " . join("\n", $username, $doi, $validated_terms)) . "\n";
-#		my $s_q = $stats_query;
-#		$s_q =~ s|__ID__|<http://dx.doi.org/$doi>|gs;
-#		my $data = sparqlQuery($s_q, $endpoint, $output);
-#		my @data = split("[\n\r]", $data);
-#		for my $i (1..$#data) {
-#			my ($h, $l, $v) = split("[\t\s]+", $data[$i]);
-#			# print $q->comment(join("\t", $h, $l, $v, $data[$i])) . "\n";
-#			$h =~ s/"//g;
-#			$l =~ s/"//g;
-#			$v =~ s/"//g;
-#			my $rdf = "<http://dx.doi.org/$doi>+<http://rdf.iop.org/hasHits>+\"$h\"+.+";
-#			$rdf .= "<http://dx.doi.org/$doi>+<http://rdf.iop.org/hasLuxidCount>+\"$l\"+.+";
-#			$rdf .= "<http://dx.doi.org/$doi>+<http://rdf.iop.org/hasValidatedCount>+\"$v\"+.+";
-#			delete_4store_data($rdf, "http://data.iop.org/leaderboard");
-#		}
-#		my ($h, $l, $v) = compare_annotations($doi);
-#		$username =~ s/\@/_at_/;
-#		# want to check whether this is an update or not
-#		my $r_q = $review_query;
-#		$r_q =~ s/__USER__/$username/;
-#		$r_q =~ s/__DOI__/$doi/;
-#		my $r_data = sparqlQuery($r_q, $endpoint, $output);
-#		my @r_data = split("[\n\r]", $r_data);
-#		my $timestamp = strftime("%Y%m%d%H%M%S", localtime(time)) . "_" . int(rand(9999));
-#		my $datetime = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
-#		my $rdf;
-#		unless (scalar(@r_data) > 1) {
-#			$rdf = "<http://rdf.iop.org/email/$username> <http://rdf.iop.org/hasDoneReview> <http://rdf.iop.org/AnnotationReview/$timestamp> .\n";
-#			$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasDOI> <http://dx.doi.org/$doi> . \n";
-#			$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasDateTime> \"$datetime\"^^<http://www.w3.org/2001/XMLSchema#dateTime> . \n";
-#		}
-#		else {
-#			print $q->comment("Updated review detected for $username & $doi:\n" . join("\n", @r_data)) . "\n";
-#		}
-#		$rdf .= "<http://dx.doi.org/$doi> <http://rdf.iop.org/hasHits> \"$h\" .\n";
-#		$rdf .= "<http://dx.doi.org/$doi> <http://rdf.iop.org/hasLuxidCount> \"$l\" .\n";
-#		$rdf .= "<http://dx.doi.org/$doi> <http://rdf.iop.org/hasValidatedCount> \"$v\" .\n";
-#		$rdf .= "<http://dx.doi.org/$doi> <http://rdf.iop.org/hasValidatedTerm> \"$_\" .\n" foreach @$validated_terms;
-#		my $data_ep = "http://corichi:8080/data/";
-#		my $content = "graph=http://data.iop.org/leaderboard&mime-type=application/x-turtle&data=" . uri_escape_utf8($rdf);
-#		
-#		my $response = $ua->post(
-#			$data_ep,
-#			Content => $content
-#			);
-#		unless ($response->is_success()) {
-#			print $q->h1("Data upload failed.") . "\n";
-#			print $q->p(Dumper($response)) . "\n";
-#		}
-#		else {
-#			print $q->comment("Data uploaded.") . "\n";
-#			# print $q->p($content) . "\n";
-#		}
-#		return 1 if scalar(@r_data) > 1;
-#	}
-
 sub delete_4store_data {
 	my ($content, $graph) = @_;
 	my $ua = LWP::UserAgent->new();
@@ -869,51 +721,12 @@ sub delete_4store_data {
 		);
 	$content =~ s/[<>]/|/g;
 	$c =~ s/[<>]/|/g;
-	# print $q->p("Content: $content Graph: $graph") . "\n";
 	unless ($response->is_success()) {
 		print $q->h1("Delete upload failed.") . "\n";
 		print $q->p(Dumper($response)) . "\n";
 	}
-	else {
-		# print $q->p("Delete successful: $c") . "\n";
-	}
 }
 
-#	sub compare_annotations {
-#		my $doi = shift;
-#		my @luxid_terms;
-#		my %luxid_terms;
-#		my @validated_terms;
-#		my %validated_terms;
-#		# TODO need to replace this with 4store check
-#	#	my $annot_url = "http://services.iop.org/content-service/article/doi/".$doi."?header_accept=application%2Fvnd.iop.org.annotation%2Bxml";
-#	#	my $a = get($annot_url);
-#	#	@luxid_terms = $a =~ m|<term>(.*?)</term>|g;
-#	#	my $artid = get("http://corichi/cgi-bin/doi2id.pl?doi=$doi");
-#	#	$artid =~ s|[\n\r]||g;
-#	#	$artid =~ s|[^\w-]|_|g;
-#	#	$artid .= ".tmx";
-#		my $hit;
-#		#	open (my $fh, "<", "/home/apache/tmx/live/$artid") or print $q->h1("Unable to find feedback file for $doi")."\n";
-#		#	my @content = <$fh>;
-#		#	foreach my $content (@content) {
-#		#		my ($term) = $content =~ m|<ft>/Metadata/SKOSTerm/(.+?)</ft>|;
-#		#		push (@validated_terms, $term) if $term;
-#		#	}
-#		#	$luxid_terms{$_} = 1 foreach @luxid_terms;
-#		#	$validated_terms{$_} = 1 foreach @validated_terms;
-#		#	my ($hit) = (0);
-#		#	foreach my $term (sort(keys(%validated_terms))) {
-#		#		if ($luxid_terms{$term}) {
-#		#			#	found/green
-#		#			$hit++;
-#		#		}
-#		#	}
-#		# my $p = (scalar(@luxid_terms) > 0) ? $hit / scalar(@luxid_terms) : 0;
-#		# my $r = (scalar(@validated_terms) > 0) ? $hit / scalar(@validated_terms) : 0;
-#		return ($hit, scalar(@luxid_terms), scalar(@validated_terms));
-#	}
-	
 sub convert_numerical_entities {
 
 	my $stringToParse = shift @_;
