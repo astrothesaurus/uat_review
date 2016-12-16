@@ -3,68 +3,17 @@ version: "2"
 
 services:
 
-  notify-svc:
-    image: ioporg/iopsci-notify-svc
+  uat-svc:
+    image: ioporg/uat_review
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_RABBITMQ_ADDRESSES=iopscinotify_rabbitmq_1
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - RETRIEVAL_SERVICE_URL=iopscinotify_retrieval-svc_1
-      - NOTIFY_SERVICE_EDITORIAL_TO=test.content.managers@iop.org
-      - NOTIFY_SERVICE_AUTHOR_TO=test.content.managers@iop.org
+      - PROFILE=dev
     ports:
-      - "9082:8082"
+      - "88888:80"
     volumes:
       - /tmp
     links:
-      - rabbitmq
-      - retrieval-svc
-
-  retrieval-svc:
-    image: ioporg/iopsci-retrieval-svc
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_RABBITMQ_ADDRESSES=iopscinotify_rabbitmq_1
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-      - XML_SERVICE_URL=iopscinotify_xml-svc_1:12000      
-      - XML_SERVICE_USER=admin
-      - XML_SERVICE_PASS=admin
-    ports:
-      - "9084:8084"
-    volumes:
-      - /tmp
-    links:
-      - rabbitmq
-      - xml-svc
-
-  xml-svc:
-    image: ioporg/iopsci-xml-svc
-    ports:
-      - "12000:12000"
-      - "8000:8000"
-
-  rabbitmq:
-    image: ioporg/iopsci-rabbitmq
-    environment:
-      - RABBITMQ_ERLANG_COOKIE=iopsci
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-      - RABBITMQ_DEFAULT_VHOST=/
-    ports:
-      - "15671:15671"
-      - "15672:15672"
-      - "25672:25672"
-      - "4369:4369"
-      - "5671:5671"
-      - "5672:5672"
-    volumes:
-      - rabbitmq-volume:/var/lib/rabbitmq/mnesia/iopsci
-
+      - database
+      
 volumes:
-  rabbitmq-volume:
+  database-volume:
     driver: local
