@@ -61,7 +61,7 @@ $regex =~ s|\\\\|\\|g;
 my $query = $thes ? $thes_query : $all_query;
 if ($regex) {
 	$query =~ s/__REGEX__/$regex/g;
-	my $rdf_out = sparqlQuery($query, $endpoint, $output);
+	my $rdf_out = &sparqlQuery($query, $endpoint, $output);
 	my @terms = split("[\n\r]",$rdf_out);
 	$rdf_out = "[";
 	my $c;
@@ -97,7 +97,7 @@ if ($regex) {
 }
 elsif ($all) {
 	$query =~ s/__REGEX__/$regex/g;
-	my $rdf_out = sparqlQuery($query, $endpoint, $output);
+	my $rdf_out = &sparqlQuery($query, $endpoint, $output);
 	my @terms = split("[\n\r]",$rdf_out);
 	$rdf_out = "[";
 	foreach (@terms) {
@@ -139,7 +139,7 @@ END_OF_HTML
 	exit;
 }
 
-sub sparqlQuery(@args) {
+sub sparqlQuery() {
 	my $query=shift;
 	my $baseURL=shift;
 	my $format=shift;

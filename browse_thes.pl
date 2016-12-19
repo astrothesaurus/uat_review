@@ -167,7 +167,7 @@ if ($regex) {
 	$regex =~ s|\\\\|\\|g;
 	$exact_query =~ s/__REGEX__/$regex/g;
 	$match_query =~ s/__REGEX__/$regex/g;
-	my $rdf_out = sparqlQuery($exact_query, $endpoint, $output);
+	my $rdf_out = &sparqlQuery($exact_query, $endpoint, $output);
 	print "<!-- $rdf_out -->\n";
 	my @terms = split("[\n\r]", $rdf_out);
 	
@@ -224,12 +224,12 @@ print '
 </div>
 ';
 print $q->end_form();
-my $rdf_out = sparqlQuery($sparql_query, $endpoint, $output);
+my $rdf_out = &sparqlQuery($sparql_query, $endpoint, $output);
 my @terms = split("[\n\r]", $rdf_out);
 shift @terms;
 if ($exact) {
 	$excl_query =~ s/__REGEX__/$regex/gs;
-	my $rdf_out = sparqlQuery($excl_query, $endpoint, $output);
+	my $rdf_out = &sparqlQuery($excl_query, $endpoint, $output);
 	my @terms2 = split("[\n\r]", $rdf_out);
 	shift @terms2;
 	# print "<!-- $_ -->\n" foreach @terms2;
@@ -251,7 +251,7 @@ foreach my $row (@terms) {
 	print $q->p({-class=>'small'}, "Source: $source") . "\n";
 	my $temp_alt_query = $alt_query;
 	$temp_alt_query =~ s/__LABEL__/$term/;
-	my $list = sparqlQuery($temp_alt_query, $endpoint, $output);
+	my $list = &sparqlQuery($temp_alt_query, $endpoint, $output);
 	my @altterms = split("[\n\r]", $list);
 	if (scalar(@altterms) > 1) {
 		foreach my $relterm (@altterms) {
@@ -272,7 +272,7 @@ foreach my $row (@terms) {
 			my $temp_query = $rel_query;
 			$temp_query =~ s/__TYPE__/$type/;
 			$temp_query =~ s/__LABEL__/$term/;
-			my $list = sparqlQuery($temp_query, $endpoint, $output);
+			my $list = &sparqlQuery($temp_query, $endpoint, $output);
 			my @relterms = split("[\n\r]", $list);
 			print "<div class=\"col-lg-4\">\n";
 			print $q->h3("$type terms") ."\n";
@@ -295,7 +295,7 @@ print "</div>\n";
 print $q->end_html();
 
 sub get_thes_versions {
-	my $list = sparqlQuery($graph_query, $endpoint, $output);
+	my $list = &sparqlQuery($graph_query, $endpoint, $output);
 	my @graphs = split("[\n\r]", $list);
 	pop @graphs;
 	my @return;
@@ -307,7 +307,7 @@ sub get_thes_versions {
 	return @return;
 }
 
-sub sparqlQuery(@args) {
+sub sparqlQuery() {
 	my $query=shift;
 	$query =~ s/__GRAPH__/$graph/g;
 	# print "<!-- $query -->\n";

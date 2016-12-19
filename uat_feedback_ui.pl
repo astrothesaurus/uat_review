@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use POSIX;
+use POSIX ();
 use CGI qw/:standard/;
 use LWP::Simple qw/get/;
 use LWP::UserAgent;
@@ -308,7 +308,7 @@ if (@entities || $validated ||
 			$message .= "Feedback review: $submit\n";
 		}
 		$message .= join("\n", "", "Comments:\n  $comments") if $comments;
-		my $from = "uat_feedback\@corichi.iop.org";
+		my $from = "uat_feedback\@iop.org";
 		unless (($live) && ($username eq "domex")) {
 			&email_alert($doi, 
 				$message,
@@ -338,7 +338,7 @@ if (@entities || $validated ||
 		}
 		my $s_q = $annotation_query;
 		$s_q =~ s|__DOI__|$doi|gs;
-		my $data = sparqlQuery($s_q, $endpoint, $output, $limit);
+		my $data = &sparqlQuery($s_q, $endpoint, $output, $limit);
 			$s_q =~ s/</&lt;/g;
 			$s_q =~ s/>/&gt;/g;
 		my @data = split("[\n\r]", $data);
@@ -380,7 +380,7 @@ if (@entities || $validated ||
 			}
 		}
 		$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasComment> \"".uri_escape_utf8($comments) . "\"";
-		my $data_ep = "http://corichi:8080/data/";
+		my $data_ep = "http://localhost:8080/data/";
 		my $content = "graph=http://data.iop.org/uat_review&mime-type=application/x-turtle&data=" . uri_escape_utf8($rdf);
 		
 		my $response = $ua->post(
@@ -444,7 +444,7 @@ print $q->end_html;
 sub print_validation_form {
 	my ($doi, $checked) = @_;
 	$doc_query =~ s|__DOI__|$doi|;
-	my $art_check = sparqlQuery($doc_query, $endpoint, $output, $limit);
+	my $art_check = &sparqlQuery($doc_query, $endpoint, $output, $limit);
 	if ($art_check =~ m|rdf\.iop\.org|) {
 		print "<!-- got metadata -->\n";
 		my $x;
@@ -453,7 +453,7 @@ sub print_validation_form {
 		my $docid = format_metadata($doi);
 		my $a = $annotation_query;
 		$a =~ s/__DOI__/$doi/;
-		my $annots = sparqlQuery($a, $endpoint, $output, $limit);
+		my $annots = &sparqlQuery($a, $endpoint, $output, $limit);
 		if ($annots) {
 			format_annots($checked);
 		}
@@ -468,7 +468,7 @@ sub format_metadata {
 	my $doi = shift;
 	my $m = $metadata_query;
 	$m =~ s|__DOI__|$doi|gs;
-	my $metadata = sparqlQuery($m, $endpoint, $output, $limit);
+	my $metadata = &sparqlQuery($m, $endpoint, $output, $limit);
 	my @meta = split ("[\n\r]", $metadata);
 	my ($title, $abstract, $citation, $issn) = split ("\t", $meta[1]);
 	$title =~ s|"||gs;
@@ -575,6 +575,9 @@ sub format_annots {
 		print "<div class=\"row mt-1\">\n";
 		print "<div class=\"col-md-6\">\n";
 		print $q->h3(span({-class=>'label label-info'}, "Step 3: Please provide contact information.")) . "\n";
+		# print "<div class=\"row mt-1\">\n";
+		print $q->h3(span({-class=>'caption'}, "Please provide an email address if you are happy for representatives of the UAT Steering Committee to contact you with any questions or updates on your feedback. This information will only be used to contact you to discuss your feedback. It will not be used for marketing purposes or disclosed to third parties. Your details will be deleted at the conclusion of the UAT review project.")) . "\n";
+		# print "</div>\n"; #row mt-1
 		print "</div>\n"; #col md 6
 		print "</div>\n"; #row mt-1
 		
@@ -658,14 +661,14 @@ sub search_thes {
 	my $term = shift;
 	my $e = $exact_query;
 	$e =~ s/__REGEX__/$term/g;
-	my $rdf_out = sparqlQuery($e, $endpoint, $output, $limit);
+	my $rdf_out = &sparqlQuery($e, $endpoint, $output, $limit);
 	my @terms = split("[\n\r]", $rdf_out);
 	print $q->comment("$term\n". join("\n", @terms) ). "\n";
 	return 1 if scalar(@terms) == 2;
 	return 0;
 }
 
-sub sparqlQuery(@args) {
+sub sparqlQuery() {
 	my $query=shift;
 	my $baseURL=shift;
 	my $format=shift;
@@ -711,7 +714,7 @@ sub get_terms {
 sub delete_4store_data {
 	my ($content, $graph) = @_;
 	my $ua = LWP::UserAgent->new();
-	my $update_ep = "http://corichi:8080/update/";
+	my $update_ep = "http://localhost:8080/update/";
 	$content =~ s/\%/%25/g;
 	my $c = "update=DELETE+DATA+{+GRAPH+<" . $graph . ">+{+" . $content . "}+}";
 	# print $q->comment("Deleting $content") . "\n";
@@ -1157,7 +1160,7 @@ sub convert_numerical_entities {
 sub get_annotations {
 	my $doi = shift;
 	$annotation_query =~ s|__DOI__|$doi|;
-	my $terms = sparqlQuery($annotation_query, $endpoint, $output, $limit);
+	my $terms = &sparqlQuery($annotation_query, $endpoint, $output, $limit);
 	my @terms = split("[\n\r]", $terms);
 	shift @terms;
 	my @status;

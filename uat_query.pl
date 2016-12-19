@@ -43,7 +43,7 @@ $regex =~ s|\\\\|\\|g;
 # print STDERR "$regex\n"; # if $regex =~ m/['"\/]/;
 if ($regex) {
 	$query =~ s/__REGEX__/$regex/g;
-	my $rdf_out = sparqlQuery($query, $endpoint, $output);
+	my $rdf_out = &sparqlQuery($query, $endpoint, $output);
 	my @terms = split("[\n\r]",$rdf_out);
 	# print STDERR "UAT query: " . scalar(@terms) . " term matches found\n";
 	$rdf_out = "[";
@@ -94,7 +94,7 @@ if ($regex) {
 }
 elsif ($all) {
 	$query =~ s/__REGEX__/$regex/g;
-	my $rdf_out = sparqlQuery($query, $endpoint, $output);
+	my $rdf_out = &sparqlQuery($query, $endpoint, $output);
 	my @terms = split("[\n\r]",$rdf_out);
 	$rdf_out = "[";
 	foreach (@terms) {
@@ -133,7 +133,7 @@ END_OF_HTML
 	exit;
 }
 
-sub sparqlQuery(@args) {
+sub sparqlQuery() {
 	my $query=shift;
 	my $baseURL=shift;
 	my $format=shift;
