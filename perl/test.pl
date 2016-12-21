@@ -2,6 +2,12 @@
 
 use strict;
 
+use CGI qw /:standard/; 
+use LWP::UserAgent; 
+use Data::Dumper;
+use URI::Escape;
+use HTML::Entities;
+
 print <<END_OF_HTML;
 Status: 200 Bad Request
 Content-type: text/html
