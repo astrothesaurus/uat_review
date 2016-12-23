@@ -4,10 +4,10 @@ use strict;
 
 use CGI qw /:standard/; 
 use Cwd;
-use Data::Dumper;
+# use Data::Dumper;
 use Encode qw(decode encode);
-use HTML::Entities;
-use LWP::Simple qw/get/;
+# use HTML::Entities;
+# use LWP::Simple qw/get/;
 use LWP::UserAgent;
 use MIME::Lite;
 use POSIX;
