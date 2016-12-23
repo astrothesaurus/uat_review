@@ -9,6 +9,7 @@ COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
 COPY ./html /usr/local/apache2/htdocs
 COPY ./perl /usr/local/apache2/cgi-bin
 RUN mkdir /var/log/httpd
-RUN chmod -R 0777 /usr/local/apache2/cgi-bin
+RUN apk update && apk add -f perl-cgi && apk add perl-lwp-useragent-determined
+RUN chmod -R 0555 /usr/local/apache2/cgi-bin
 WORKDIR /usr/src/iop/uat_review
 
