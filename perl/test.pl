@@ -14,6 +14,31 @@ use MIME::Lite;
 use URI::Escape;
 
 
+
+sub get_http {
+	my $url = shift;
+	my $response = $ua->get($url);
+	if ($response->is_success()) {
+		return $response->content;
+	}
+	else {
+		return 0;
+	}
+}
+
+my $result = get_http("http://4store:8080/status/");
+
+if ($result) {
+print <<END_OF_HTML;
+Status: 200 OK
+Content-type: text/html
+END_OF_HTML
+
+print $result;
+
+}
+
+else {
 print <<END_OF_HTML;
 Status: 200 OK
 Content-type: text/html
@@ -38,3 +63,4 @@ Content-type: text/html
 </BODY>
 </HTML>
 END_OF_HTML
+}
