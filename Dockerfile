@@ -23,3 +23,5 @@ RUN chmod -R 0555 /usr/local/apache2/cgi-bin
 WORKDIR /usr/src/iop/uat_review
 
 RUN apk add ca-certificates wget
+wget https://www.dropbox.com/s/92th9xaew01ewm2/apj_metadata.nt?dl=0 -O metadata.nt
+wget https://www.dropbox.com/s/vhc2ampsjgawqrr/2016R3_rc1.rdf?dl=0 -O thesaurus.rdf
