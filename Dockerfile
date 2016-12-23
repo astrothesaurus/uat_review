@@ -13,7 +13,7 @@ RUN apk update
 RUN apk add perl-cgi
 RUN apk add perl-lwp-useragent-determined
 RUN apk add perl-mime-lite
-RUN apk add perl-encode
+RUN apk add -f perl-encode
 # RUN apk add perl-data-dumper
 # RUN apk add  perl-html-entities
 # RUN apk add perl-lwp-simple
