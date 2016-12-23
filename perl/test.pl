@@ -32,9 +32,14 @@ if ($result) {
 print <<END_OF_HTML;
 Status: 200 OK
 Content-type: text/html
-END_OF_HTML
 
-print $result;
+<HTML>
+<HEAD><TITLE>We've got intercommunication</TITLE></HEAD>
+<BODY>
+  <H1>All is good</H1>
+  <P>Perl works</P>
+</BODY>
+</HTML>
 
 }
 
