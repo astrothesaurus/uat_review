@@ -3,9 +3,9 @@
 use CGI qw /:standard/; 
 use LWP::UserAgent; 
 use strict; 
-use Data::Dumper;
+# use Data::Dumper;
 use URI::Escape;
-use HTML::Entities;
+# use HTML::Entities;
 
 my $q = CGI->new();
 

@@ -3,10 +3,10 @@
 use strict;
 use POSIX;
 use CGI qw/:standard/;
-use LWP::Simple qw/get/;
+# use LWP::Simple qw/get/;
 use LWP::UserAgent;
 use URI::Escape;
-use Data::Dumper;
+# use Data::Dumper;
 use Encode qw(decode encode);
 use Cwd;
 use MIME::Lite;
@@ -169,7 +169,7 @@ if ($q->param) {
 	@entities = $q->param('entities') if $q->param('entities');
 }
 if ($search) {
-	my $result = get("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+	my $result = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
 	if ($result) {
 		my @results = $result =~ m|"([^"]+)"[,\]]|gs;
 		if (scalar(@results) == 1) {
@@ -177,7 +177,7 @@ if ($search) {
 				$doi = $search;
 			}
 			else {
-				$doi = get("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+				$doi = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
 				chomp $doi;
 				$doi =~ s|[\[\]"]||g;
 			}
@@ -219,7 +219,7 @@ my (%terms, @terms, @status, %source);
 		
 	my ($terms, $status) = get_annotations($doi);
 	if ($terms) {
-		my $lookup = get("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
+		my $lookup = get_http("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
 		if ($lookup) {
 			$lookup =~ s|[\[\]]||gs;
 			my @thes_terms = $lookup =~ m|"(.*?)"[,\]]|gs;
@@ -389,7 +389,7 @@ if (@entities || $validated ||
 			);
 		unless ($response->is_success()) {
 			print $q->h1("Data upload failed.") . "\n";
-			print $q->p(Dumper($response)) . "\n";
+			print $q->p(($response)) . "\n"; #Dumper
 		}
 		else {
 			print $q->comment("Data uploaded.") . "\n";
@@ -410,8 +410,8 @@ if (@entities || $validated ||
 				my $response = $ua->request($req);
 				unless ($response->is_success()) {
 					print STDERR "Github issue upload failed." . "\n";
-					print STDERR Dumper($deposit) . "\n";
-					print STDERR Dumper($response) . "\n";
+					# print STDERR ($deposit) . "\n";
+					# print STDERR ($response) . "\n";
 				}
 				else {
 					print $q->p("Thesaurus suggestion loaded to Github.") . "\n";
@@ -519,7 +519,7 @@ sub format_annots {
 			foreach (@terms) {
 				my $s = $source{$_};
 				unless ($s) {
-					my $source = get("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
+					my $source = get_http("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
 					$s = $source =~ m|astro| ? "UAT" : "IOP";
 				}
 				if ($fb) {
@@ -723,7 +723,7 @@ sub delete_4store_data {
 	$c =~ s/[<>]/|/g;
 	unless ($response->is_success()) {
 		print $q->h1("Delete upload failed.") . "\n";
-		print $q->p(Dumper($response)) . "\n";
+		print $q->p(($response)) . "\n"; # Dumper
 	}
 }
 
@@ -1170,4 +1170,15 @@ sub get_annotations {
 		$status[$i] = $s;
 	}
 	return (\@terms, \@status);
+}
+
+sub get_http {
+	my $url = shift;
+	my $response = $ua->get($url);
+	if ($response->is_success()) {
+		return $response->content;
+	}
+	else {
+		return 0;
+	}
 }
