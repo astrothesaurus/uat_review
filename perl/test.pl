@@ -38,9 +38,10 @@ Content-type: text/html
 <BODY>
   <H1>All is good</H1>
   <P>Perl works</P>
+  <p>$result</p>
 </BODY>
 </HTML>
-
+END_OF_HTML
 }
 
 else {
