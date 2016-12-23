@@ -13,7 +13,7 @@ use LWP::UserAgent;
 use MIME::Lite;
 use URI::Escape;
 
-
+my $ua=LWP::UserAgent->new();
 
 sub get_http {
 	my $url = shift;
