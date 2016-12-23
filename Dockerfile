@@ -22,3 +22,4 @@ RUN apk add perl-uri
 RUN chmod -R 0555 /usr/local/apache2/cgi-bin
 WORKDIR /usr/src/iop/uat_review
 
+RUN apk add ca-certificates wget
