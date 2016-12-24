@@ -31,7 +31,7 @@ my @new_terms;
 my $list;
 
 my $output = "text";
-my $endpoint = "http://localhost:8080/sparql/";
+my $endpoint = "http://4store:8080/sparql/";
 my $limit = -1;
 	
 my $exact_query = <<EOQ;
@@ -169,7 +169,7 @@ if ($q->param) {
 	@entities = $q->param('entities') if $q->param('entities');
 }
 if ($search) {
-	my $result = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+	my $result = get_http("http://uat/cgi-bin/uat_query.pl?doi=1&term=$search");
 	if ($result) {
 		my @results = $result =~ m|"([^"]+)"[,\]]|gs;
 		if (scalar(@results) == 1) {
@@ -177,7 +177,7 @@ if ($search) {
 				$doi = $search;
 			}
 			else {
-				$doi = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+				$doi = get_http("http://uat/cgi-bin/uat_query.pl?doi=1&term=$search");
 				chomp $doi;
 				$doi =~ s|[\[\]"]||g;
 			}
@@ -219,7 +219,7 @@ my (%terms, @terms, @status, %source);
 		
 	my ($terms, $status) = get_annotations($doi);
 	if ($terms) {
-		my $lookup = get_http("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
+		my $lookup = get_http("http://uat/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
 		if ($lookup) {
 			$lookup =~ s|[\[\]]||gs;
 			my @thes_terms = $lookup =~ m|"(.*?)"[,\]]|gs;
@@ -519,7 +519,7 @@ sub format_annots {
 			foreach (@terms) {
 				my $s = $source{$_};
 				unless ($s) {
-					my $source = get_http("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
+					my $source = get_http("http://uat/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
 					$s = $source =~ m|astro| ? "UAT" : "IOP";
 				}
 				if ($fb) {
