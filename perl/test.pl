@@ -27,7 +27,7 @@ sub get_http {
 }
 
 # my $result = get_http("http://4store:8080/status/");
-my $result = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=ch");
+my $result = get_http("http://localhost/cgi-bin/uat_query.pl?term=cho");
 
 if ($result) {
 print <<END_OF_HTML;

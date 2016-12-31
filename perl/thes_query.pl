@@ -10,7 +10,7 @@ use URI::Escape;
 my $q = CGI->new();
 
 my $output = "text";
-my $endpoint = "http://4store:8080/sparql/";
+my $endpoint = "http://localhost:8080/sparql/";
 my $limit = 1000;
 
 
