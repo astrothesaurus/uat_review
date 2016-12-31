@@ -169,7 +169,7 @@ if ($q->param) {
 	@entities = $q->param('entities') if $q->param('entities');
 }
 if ($search) {
-	my $result = get_http("http://uat/cgi-bin/uat_query.pl?doi=1&term=$search");
+	my $result = get_http("http://localhost:8888/cgi-bin/uat_query.pl?doi=1&term=$search");
 	if ($result) {
 		my @results = $result =~ m|"([^"]+)"[,\]]|gs;
 		if (scalar(@results) == 1) {
@@ -177,7 +177,7 @@ if ($search) {
 				$doi = $search;
 			}
 			else {
-				$doi = get_http("http://uat/cgi-bin/uat_query.pl?doi=1&term=$search");
+				$doi = get_http("http://localhost:8888/cgi-bin/uat_query.pl?doi=1&term=$search");
 				chomp $doi;
 				$doi =~ s|[\[\]"]||g;
 			}
@@ -380,7 +380,7 @@ if (@entities || $validated ||
 			}
 		}
 		$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasComment> \"".uri_escape_utf8($comments) . "\"";
-		my $data_ep = "http://corichi:8080/data/";
+		my $data_ep = "http://localhost:8080/data/";
 		my $content = "graph=http://data.iop.org/uat_review&mime-type=application/x-turtle&data=" . uri_escape_utf8($rdf);
 		
 		my $response = $ua->post(
@@ -711,7 +711,7 @@ sub get_terms {
 sub delete_4store_data {
 	my ($content, $graph) = @_;
 	my $ua = LWP::UserAgent->new();
-	my $update_ep = "http://corichi:8080/update/";
+	my $update_ep = "http://localhost:8080/update/";
 	$content =~ s/\%/%25/g;
 	my $c = "update=DELETE+DATA+{+GRAPH+<" . $graph . ">+{+" . $content . "}+}";
 	# print $q->comment("Deleting $content") . "\n";
