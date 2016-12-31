@@ -21,7 +21,7 @@ my $regex = $q->param('term') || 0;
 my $exact = $q->param('exact') || 0;
 my $list_limit = $q->param('limit') || 20;
 my $all = $q->param('all') || 0;
-my $thes = $q->param('thes') || 0;
+my $thes = $q->param('thes') || "2016R3";
 my $source = $q->param('source') || 0;
 
 my $all_query = <<EOQ;
