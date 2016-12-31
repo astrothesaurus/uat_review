@@ -160,7 +160,7 @@ foreach (@graphs) {
 	$labels{$_} = $label;
 }
 @graphs = sort(keys(%labels));
-my $graph = $q->param('graph') || $graphs[-2];
+my $graph = $q->param('graph') || "2016R3";
 
 if ($regex) {
 	$regex =~ s|(['"\/])|\\$1|g;
