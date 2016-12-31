@@ -31,7 +31,7 @@ my @new_terms;
 my $list;
 
 my $output = "text";
-my $endpoint = "http://4store:8080/sparql/";
+my $endpoint = "http://localhost:8080/sparql/";
 my $limit = -1;
 	
 my $exact_query = <<EOQ;
