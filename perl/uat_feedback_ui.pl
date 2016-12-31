@@ -31,7 +31,7 @@ my @new_terms;
 my $list;
 
 my $output = "text";
-my $endpoint = "http://localhost:8080/sparql/";
+my $endpoint = "http://4store:8080/sparql/";
 my $limit = -1;
 	
 my $exact_query = <<EOQ;
@@ -380,7 +380,7 @@ if (@entities || $validated ||
 			}
 		}
 		$rdf .= "<http://rdf.iop.org/AnnotationReview/$timestamp> <http://rdf.iop.org/hasComment> \"".uri_escape_utf8($comments) . "\"";
-		my $data_ep = "http://localhost:8080/data/";
+		my $data_ep = "http://4store:8080/data/";
 		my $content = "graph=http://data.iop.org/uat_review&mime-type=application/x-turtle&data=" . uri_escape_utf8($rdf);
 		
 		my $response = $ua->post(
@@ -711,7 +711,7 @@ sub get_terms {
 sub delete_4store_data {
 	my ($content, $graph) = @_;
 	my $ua = LWP::UserAgent->new();
-	my $update_ep = "http://localhost:8080/update/";
+	my $update_ep = "http://4store:8080/update/";
 	$content =~ s/\%/%25/g;
 	my $c = "update=DELETE+DATA+{+GRAPH+<" . $graph . ">+{+" . $content . "}+}";
 	# print $q->comment("Deleting $content") . "\n";
