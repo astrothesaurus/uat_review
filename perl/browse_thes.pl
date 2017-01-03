@@ -188,7 +188,7 @@ else {
 print "<div class=\"container\">\n";
 print "<!-- " . Dump . " -->\n";
 print "<!-- " . (%labels) . "\n" . (@graphs) ." -->\n";
-print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"browse_thes.pl");
+print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"$base_url/cgi-bin/browse_thes.pl");
 print '
 <div class="jumbotron" role="alert"><h3>Search the thesaurus</h3>
 	<div class="row">
