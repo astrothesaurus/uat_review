@@ -3,16 +3,31 @@
 use CGI qw /:standard/; 
 use LWP::UserAgent; 
 use strict; 
-use Data::Dumper;
+# use Data::Dumper;
 use URI::Escape;
-use HTML::Entities;
+# use HTML::Entities;
 
 my $q = CGI->new();
 
 my $output = "text";
-my $endpoint = "http://localhost:8080/sparql/";
+my $endpoint = "http://4store:8080/sparql/";
 my $limit = 1000;
 
+my $query = <<EOQ;
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ioprdf: <http://rdf.iop.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?doi ?author ?title WHERE { graph <http://data.iop.org/uat_review> {
+ ?doi ioprdf:hasAuthor ?author .
+ ?doi ioprdf:hasTitle ?title .
+ }
+}
+order by ?doi
+
+EOQ
 
 # filter (regex(str(?label), '__REGEX__', 'i') || regex(str(?altLabel), '__REGEX__', 'i')) .
 # limit 20
@@ -20,49 +35,17 @@ my $limit = 1000;
 my $regex = $q->param('term') || 0;
 my $exact = $q->param('exact') || 0;
 my $list_limit = $q->param('limit') || 20;
-my $all = $q->param('all') || 0;
-my $thes = $q->param('thes') || 0;
-my $source = $q->param('source') || 0;
-
-my $all_query = <<EOQ;
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ioprdf: <http://rdf.iop.org/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-
-SELECT DISTINCT ?label ?altLabel WHERE {
- ?term skos:prefLabel ?label .
- optional { ?term skos:altLabel ?altLabel . }
-}
-order by strlen(?label) ?label
-
-EOQ
-
-my $thes_query = <<EOTQ;
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX ioprdf: <http://rdf.iop.org/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-
-SELECT DISTINCT ?label ?altLabel ?term WHERE { graph <http://data.iop.org/thesaurus/$thes> {
- ?term skos:prefLabel ?label .
- optional { ?term skos:altLabel ?altLabel . }
-}
-}
-order by strlen(?label) ?label
-
-EOTQ
+my $all = $q->param('all') || 20;
+my $doi = $q->param('doi') || 0;
 
 #$regex =~ s|(['"\/])|\\$1|g;
 $regex =~ s|\\\\|\\|g;
 # print STDERR "$regex\n"; # if $regex =~ m/['"\/]/;
-my $query = $thes ? $thes_query : $all_query;
 if ($regex) {
 	$query =~ s/__REGEX__/$regex/g;
 	my $rdf_out = &sparqlQuery($query, $endpoint, $output);
 	my @terms = split("[\n\r]",$rdf_out);
+	# print STDERR "UAT query: " . scalar(@terms) . " term matches found\n";
 	$rdf_out = "[";
 	my $c;
 	foreach (@terms) {
@@ -71,16 +54,30 @@ if ($regex) {
 		next unless m/\Q$regex/i;
 		if ($exact) {
 			# print STDERR "exact: $_\n";
-			next unless m/^"\Q$regex"/i;
+			next unless m/"\Q$regex"/i;
 		}
-		my ($term, $synonym, $s) = split ("\t", $_);
-		# s/([^\t]+).+/$1/;
-		unless ($rdf_out =~ m/$term/) {
-			$rdf_out .= "$term,";
-			$rdf_out .= "$s," if $source; 
+		elsif ($doi) {
+			s|<http://dx\.doi\.org/([^>]+).+|"$1"|;
+			$rdf_out .= "$_," unless $rdf_out =~ m/$_/;
+			$c++;
 		}
-		$c++;
-		last if $c >= $list_limit;
+		else{
+			my @parts = split("\t", $_);
+			foreach my $part (@parts) {
+				next unless $part =~ m/\Q$regex/i;
+				$part =~ s|[\n\r]| |gs;
+				$part =~ s|[<>]||g;
+				$part =~ s|http://dx.doi.org/||gs;
+				$part = "\"" . $part . "\"" unless $part =~m|^".*"$|;
+				print STDERR "\n$part\n$rdf_out\n";
+				unless ($rdf_out =~ m/\Q$part/s) {
+					$c++;
+					$rdf_out .= "$part,";
+				}
+			}
+		}
+		# print STDERR "$c matches found\n";
+		last if $c > $list_limit;
 	}
 	$rdf_out =~ s/,$//;
 	$rdf_out .= "]\n";
@@ -101,14 +98,11 @@ elsif ($all) {
 	my @terms = split("[\n\r]",$rdf_out);
 	$rdf_out = "[";
 	foreach (@terms) {
-		next if m/\?label/;
+		next if m/\?/;
 		next if m/^\s*$/;
-		my ($term, $synonym, $s) = split ("\t", $_);
-		# s/([^\t]+).+/$1/;
-		unless ($rdf_out =~ m/$term/) {
-			$rdf_out .= "$term,";
-			$rdf_out .= "$s," if $source; 
-		}
+		s/([^\t]+).+/$1/;
+		$_ = "\"" . $_ . "\"" unless $_ =~m|^".*"$|;
+		$rdf_out .= "$_," unless $rdf_out =~ m/$_/;
 	}
 	$rdf_out =~ s/,$//;
 	$rdf_out .= "]\n";

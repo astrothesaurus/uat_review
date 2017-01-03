@@ -3,16 +3,16 @@
 use CGI qw /:standard/; 
 use LWP::UserAgent; 
 use strict; 
-use Data::Dumper;
+# use Data::Dumper;
 use URI::Escape;
-use HTML::Entities;
+# use HTML::Entities;
 
 my $q = CGI->new();
 
 my $self_url = $q->url;
 
 my $output = "text";
-my $endpoint = "http://localhost:8080/sparql/";
+my $endpoint = "http://4store:8080/sparql/";
 my $limit = -1;
 my $sparql_query;
 my $exact;
@@ -160,7 +160,7 @@ foreach (@graphs) {
 	$labels{$_} = $label;
 }
 @graphs = sort(keys(%labels));
-my $graph = $q->param('graph') || $graphs[-2];
+my $graph = $q->param('graph') || "2016R3";
 
 if ($regex) {
 	$regex =~ s|(['"\/])|\\$1|g;
@@ -177,7 +177,7 @@ if ($regex) {
 		print "<!-- found exact match -->\n";
 	}
 	else {
-		print "<!-- " . Dumper(@terms) . " -->\n";
+		print "<!-- " . (@terms) . " -->\n";
 		$sparql_query = $match_query;
 	}
 }
@@ -186,7 +186,7 @@ else {
 }
 print "<div class=\"container\">\n";
 print "<!-- " . Dump . " -->\n";
-print "<!-- " . Dumper(%labels) . "\n" . Dumper(@graphs) ." -->\n";
+print "<!-- " . (%labels) . "\n" . (@graphs) ." -->\n";
 print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"browse_thes.pl");
 print '
 <div class="jumbotron" role="alert"><h3>Search the thesaurus</h3>

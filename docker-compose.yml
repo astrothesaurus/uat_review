@@ -1,0 +1,19 @@
+
+version: "2"
+
+services:
+
+  uat-svc:
+    image: ioporg/uat_review
+    environment:
+      - PROFILE=dev
+    ports:
+      - "88888:80"
+    volumes:
+      - /tmp
+    links:
+      - database
+      
+volumes:
+  database-volume:
+    driver: local
