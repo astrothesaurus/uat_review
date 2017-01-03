@@ -124,6 +124,7 @@ print $q->start_html(
 	);
 
 print "<div class=\"container\">\n";
+print $q->p($base_url) . "\n";
 
 if ($q->param) {
 	$search = $q->param('search_term') || 0;
