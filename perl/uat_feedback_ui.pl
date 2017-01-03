@@ -115,12 +115,16 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js'},
 		{-type=>'text/javascript', 'src'=>'/js/bootstrap.min.js'},
 		{-type=>'text/javascript', 'src'=>'/js/css3-mediaqueries.js'},
-		{-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'},
+		# {-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'},
 		{-type=>'text/javascript', 'src'=>'/js/uat_autocomplete.js'},
 		{-type=>'text/javascript', 'src'=>'/js/validate_form.js'},
 		{-type=>'text/javascript', 'src'=>'/js/toggle.js'}
 		],
+	-script=>[
+		{-type=>'text/javascript', "$(function() {$( \"#term1\" ).autocomplete({source:\"http://$base_url/cgi-bin/thes_query.pl\",minLength:2})}"}
+		]
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
+	
 	);
 
 print "<div class=\"container\">\n";

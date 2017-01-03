@@ -3,7 +3,7 @@ $(function() {
 
 	$( "#term1" ).autocomplete(
 	{
-		 source:"http://localhost/cgi-bin/thes_query.pl",
+		 source:"http://localhost:8888/cgi-bin/thes_query.pl",
 		 minLength:2
 	});
 });	
