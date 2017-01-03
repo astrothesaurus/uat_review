@@ -8,6 +8,7 @@ use URI::Escape;
 # use HTML::Entities;
 
 my $q = CGI->new();
+my $base_url = $q->url(-base => 1);
 
 my $output = "text";
 my $endpoint = "http://4store:8080/sparql/";

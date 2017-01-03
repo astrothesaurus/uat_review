@@ -99,6 +99,7 @@ EOT
 my $q = CGI->new();
 
 my $self_url = $q->self_url;
+my $base_url = $q->url(-base => 1);
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print $q->start_html(
@@ -169,7 +170,7 @@ if ($q->param) {
 	@entities = $q->param('entities') if $q->param('entities');
 }
 if ($search) {
-	my $result = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+	my $result = get_http("http://$base_url/cgi-bin/uat_query.pl?doi=1&term=$search"); # server-side
 	if ($result) {
 		my @results = $result =~ m|"([^"]+)"[,\]]|gs;
 		if (scalar(@results) == 1) {
@@ -177,7 +178,8 @@ if ($search) {
 				$doi = $search;
 			}
 			else {
-				$doi = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+				# do we ever get here?
+				$doi = get_http("http://$base_url/cgi-bin/uat_query.pl?doi=1&term=$search"); # client-side
 				chomp $doi;
 				$doi =~ s|[\[\]"]||g;
 			}
@@ -219,7 +221,7 @@ my (%terms, @terms, @status, %source);
 		
 	my ($terms, $status) = get_annotations($doi);
 	if ($terms) {
-		my $lookup = get_http("http://uat/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
+		my $lookup = get_http("http://$base_url/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
 		if ($lookup) {
 			$lookup =~ s|[\[\]]||gs;
 			my @thes_terms = $lookup =~ m|"(.*?)"[,\]]|gs;
@@ -519,7 +521,7 @@ sub format_annots {
 			foreach (@terms) {
 				my $s = $source{$_};
 				unless ($s) {
-					my $source = get_http("http://uat/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
+					my $source = get_http("http://$base_url/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
 					$s = $source =~ m|astro| ? "UAT" : "IOP";
 				}
 				if ($fb) {

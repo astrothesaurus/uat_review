@@ -10,6 +10,7 @@ use URI::Escape;
 my $q = CGI->new();
 
 my $self_url = $q->url;
+my $base_url = $q->url(-base => 1);
 
 my $output = "text";
 my $endpoint = "http://4store:8080/sparql/";
@@ -241,13 +242,13 @@ my $phrase = " terms found";
 $phrase =~ s/s// if scalar(@terms) == 1;
 print $q->h3(span({-class=>"label label-success"}, (scalar(@terms)). $phrase)) . "\n";
 foreach my $row (@terms) {
-	my ($url, $term) = split("\t", $row);
+	my ($term_url, $term) = split("\t", $row);
 	my ($syns, $nars, $broads, $rels);
 	$term =~ s/"//g;
 	next if $term =~ m/\?label/;
 	next if $term =~ m/^\s*$/;
 	print $q->h1(a{-href=>"$self_url?term=$term&graph=$graph"}, $term)."\n";
-	my ($source) = $url =~ m|http://([^/]+)|;
+	my ($source) = $term_url =~ m|http://([^/]+)|;
 	print $q->p({-class=>'small'}, "Source: $source") . "\n";
 	my $temp_alt_query = $alt_query;
 	$temp_alt_query =~ s/__LABEL__/$term/;
