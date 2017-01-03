@@ -149,7 +149,8 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'},
 		{-type=>'text/javascript', 'src'=>'http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js'},
 		{-type=>'text/javascript', 'src'=>'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js'},
-		{-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'}
+		# {-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'}
+		{-type=>'text/javascript', "$(function() {$( \"#term1\" ).autocomplete({source:\"http://$base_url/cgi-bin/thes_query.pl\",minLength:2})}"}
 		]
 	);
 
