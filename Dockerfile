@@ -1,6 +1,7 @@
 # IOP
 
-FROM phusion/baseimage
+# FROM phusion/baseimage
+FROM httpd:alpine
 MAINTAINER docker@iop.org
 LABEL org.iop.tech=Perl
 EXPOSE 8888:80
