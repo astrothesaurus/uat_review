@@ -171,7 +171,7 @@ if ($q->param) {
 	@entities = $q->param('entities') if $q->param('entities');
 }
 if ($search) {
-	my $result = get_http("http://$base_url/cgi-bin/uat_query.pl?doi=1&term=$search"); # server-side
+	my $result = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search"); # server-side
 	if ($result) {
 		my @results = $result =~ m|"([^"]+)"[,\]]|gs;
 		if (scalar(@results) == 1) {
@@ -180,7 +180,7 @@ if ($search) {
 			}
 			else {
 				# do we ever get here?
-				$doi = get_http("http://$base_url/cgi-bin/uat_query.pl?doi=1&term=$search"); # client-side
+				$doi = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search"); # client-side
 				chomp $doi;
 				$doi =~ s|[\[\]"]||g;
 			}
