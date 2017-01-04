@@ -122,7 +122,7 @@ print $q->start_html(
 		],
 	-script=>[
 		{-type=>'text/javascript', -code=>"$( function() {$( \"#term1\" ).autocomplete({source:\"http://$base_url/cgi-bin/thes_query.pl\",minLength:2})})"}
-		]
+		],
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
 	
 	);
