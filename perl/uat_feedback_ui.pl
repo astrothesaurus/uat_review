@@ -103,11 +103,11 @@ my $base_url = $q->url(-base => 1);
 
 my $js = <<JS;
 
-$(function() {
+\$(function() {
 
-	$( "#term1" ).autocomplete(
+	\$( "#term1" ).autocomplete(
 	{
-		 source:"http://localhost:8888/cgi-bin/thes_query.pl",
+		 source:"$base_url/cgi-bin/thes_query.pl",
 		 minLength:2
 	});
 });	
@@ -132,9 +132,7 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'/js/validate_form.js'},
 		{-type=>'text/javascript', 'src'=>'/js/toggle.js'}
 		],
-	-script=>[
-		{-type=>'text/javascript', -code=>"$js"}
-		],
+	-script=>$js,
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
 	
 	);
