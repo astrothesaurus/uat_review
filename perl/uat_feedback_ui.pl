@@ -101,13 +101,25 @@ my $q = CGI->new();
 my $self_url = $q->self_url;
 my $base_url = $q->url(-base => 1);
 
-my $js = <<JS;
+my $thes_js = <<JS;
 
 \$(function() {
 
 	\$( "#term1" ).autocomplete(
 	{
 		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+});	
+JS
+
+my $uat_js = <<JS;
+
+\$(function() {
+
+	\$( "#search_term" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/uat_query.pl",
 		 minLength:2
 	});
 });	
@@ -128,10 +140,11 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'/js/bootstrap.min.js'},
 		{-type=>'text/javascript', 'src'=>'/js/css3-mediaqueries.js'},
 		# {-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'},
-		{-type=>'text/javascript', 'src'=>'/js/uat_autocomplete.js'},
+		# {-type=>'text/javascript', 'src'=>'/js/uat_autocomplete.js'},
 		{-type=>'text/javascript', 'src'=>'/js/validate_form.js'},
 		{-type=>'text/javascript', 'src'=>'/js/toggle.js'},
-		$js
+		$thes_js,
+		$uat_js
 		],
 	# -script=>$js,
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
