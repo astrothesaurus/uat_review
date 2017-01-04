@@ -260,6 +260,9 @@ my (%terms, @terms, @status, %source);
 				$source{$t} = $s =~ m|astro| ? "UAT" : "IOP";
 			}
 		}
+		else {
+			print $q->h1("Thesaurus lookup failed") . "\n";
+		}
 
 		@terms = @$terms;
 		@status = @$status;
