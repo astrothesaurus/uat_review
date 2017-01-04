@@ -137,6 +137,19 @@ my $regex = $q->param('term') || 0;
 
 my $title = "Thesaurus browser";
 $title .= ": $regex" if $regex;
+
+my $thes_js = <<JS;
+
+\$(function() {
+
+	\$( "#term1" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+});	
+JS
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print $q->start_html(
 	-title=>$title, 
@@ -150,7 +163,7 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js'},
 		{-type=>'text/javascript', 'src'=>'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js'},
 		# {-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'}
-		{-type=>'text/javascript', "$(function() {$( \"#term1\" ).autocomplete({source:\"http://$base_url/cgi-bin/thes_query.pl\",minLength:2})}"}
+		$thes_js
 		]
 	);
 
