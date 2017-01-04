@@ -101,6 +101,18 @@ my $q = CGI->new();
 my $self_url = $q->self_url;
 my $base_url = $q->url(-base => 1);
 
+my $js = <<JS;
+
+$(function() {
+
+	$( "#term1" ).autocomplete(
+	{
+		 source:"http://localhost:8888/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+});	
+JS
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print $q->start_html(
 	-title=>'UAT Annotation feedback UI', 
@@ -121,7 +133,7 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'/js/toggle.js'}
 		],
 	-script=>[
-		{-type=>'text/javascript', -code=>"\$( function() {\$( \"#term1\" ).autocomplete({source:\"$base_url/cgi-bin/thes_query.pl\",minLength:2})})"}
+		{-type=>'text/javascript', -code=>"$js"}
 		],
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
 	
