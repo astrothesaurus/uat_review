@@ -93,7 +93,7 @@ if ($regex) {
 	else {
 		print "Status: 404 Not Found\n";
 		print "\n";
-		print "<html><head><title>REGEX 404</title></head><body>$rdf_out</body></html>\n";
+		print "<html><head><title>REGEX 404</title></head><body>" . "<p>" . join("</p>\n</p>", @terms) . "</p>\n</body></html>\n";
 		exit;
 	}
 }
