@@ -121,7 +121,7 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'/js/toggle.js'}
 		],
 	-script=>[
-		{-type=>'text/javascript', -code=>"$( function() {$( \"#term1\" ).autocomplete({source:\"http://$base_url/cgi-bin/thes_query.pl\",minLength:2})})"}
+		{-type=>'text/javascript', -code=>"\$( function() {\$( \"#term1\" ).autocomplete({source:\"$base_url/cgi-bin/thes_query.pl\",minLength:2})})"}
 		],
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
 	
@@ -226,7 +226,7 @@ my (%terms, @terms, @status, %source);
 		
 	my ($terms, $status) = get_annotations($doi);
 	if ($terms) {
-		my $lookup = get_http("http://$base_url/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
+		my $lookup = get_http("$base_url/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
 		if ($lookup) {
 			$lookup =~ s|[\[\]]||gs;
 			my @thes_terms = $lookup =~ m|"(.*?)"[,\]]|gs;
@@ -526,7 +526,7 @@ sub format_annots {
 			foreach (@terms) {
 				my $s = $source{$_};
 				unless ($s) {
-					my $source = get_http("http://$base_url/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
+					my $source = get_http("$base_url/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
 					$s = $source =~ m|astro| ? "UAT" : "IOP";
 				}
 				if ($fb) {
