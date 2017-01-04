@@ -130,9 +130,10 @@ print $q->start_html(
 		# {-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'},
 		{-type=>'text/javascript', 'src'=>'/js/uat_autocomplete.js'},
 		{-type=>'text/javascript', 'src'=>'/js/validate_form.js'},
-		{-type=>'text/javascript', 'src'=>'/js/toggle.js'}
+		{-type=>'text/javascript', 'src'=>'/js/toggle.js'},
+		$js
 		],
-	-script=>$js,
+	# -script=>$js,
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
 	
 	);
