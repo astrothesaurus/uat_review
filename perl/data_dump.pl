@@ -118,9 +118,10 @@ elsif ($q->param('nt')) {
 		#	<binding name="s"><uri>http://dx.doi.org/10.3847/0004-637X/816/1/9/term/0007</uri></binding>
 		#	<binding name="p"><uri>http://rdf.iop.org/hasStatus</uri></binding>
 		#	<binding name="o"><literal>Pending</literal></binding>
-		$result =~ s|</?uri>|<|gs;
-		$result =~ s|</?literal>|"|gs;
+		$result =~ s|<uri>|<|gs;
+		$result =~ s|</uri>|>|gs;
 		$result =~ s|<literal datatype="http://www.w3.org/2001/XMLSchema#dateTime">(.*?)</literal>|"$1"^^<http://www.w3.org/2001/XMLSchema#dateTime>|gs;
+		$result =~ s|</?literal>|"|gs;
 		($s) = $result =~ m|<binding name="s">(.*)</binding>|;
 		($p) = $result =~ m|<binding name="p">(.*)</binding>|;
 		($o) = $result =~ m|<binding name="o">(.*)</binding>|;
