@@ -19,12 +19,16 @@ my $output = "text";
 my $endpoint = "http://4store:8080/sparql/";
 my $limit = -1;
 
-my $all_query = <<EOQ;
+my $all_query_ = <<EOQ;
 Select distinct ?s ?p ?o where {
 	graph <http://data.iop.org/uat_review> {
 		?s ?p ?o .
 	}
 }
+EOQ
+
+my $all_query = <<EOQ;
+describe * where { graph <http://data.iop.org/uat_review> { <http://dx.doi.org/10.3847/0004-637X/816/1/9/term/0007> ?p ?o } }
 EOQ
 
 my $stats_query = <<EOQ;
