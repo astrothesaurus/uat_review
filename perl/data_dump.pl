@@ -25,6 +25,7 @@ Select distinct ?s ?p ?o where {
 		?s ?p ?o .
 	}
 }
+order by ?s ?p ?o
 EOQ
 
 my $stats_query = <<EOQ;
