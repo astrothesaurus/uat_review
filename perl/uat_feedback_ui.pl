@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
-use POSIX ();
 use CGI qw/:standard/;
+use CGI::Carp qw/fatalsToBrowser/;
+use POSIX ();
 # use LWP::Simple qw/get/;
 use LWP::UserAgent;
 use URI::Escape;
