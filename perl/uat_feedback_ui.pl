@@ -16,6 +16,18 @@ my $ua = LWP::UserAgent->new();
 $ua->agent('ThesTermChecker/' . $ua->_agent);
 $ua->from('michael.roberts@iop.org');
 
+
+#
+# Github configuration
+#
+my ($github_username, $github_password, $github_url);
+open (my $fh, "<", "github_config") or die $!;
+while (<$fh>) {
+	$github_username = $1 if m|Username: (.+)|;
+	$github_password = $1 if m|Password: (.+)|;;
+	$github_url =  if m|URL: (.+)|;
+}
+
 my $doi;
 my $search;
 my $submit;
@@ -431,17 +443,17 @@ if (@entities || $validated ||
 		}
 
 		if (scalar(@new_terms) > 0) {
-			print $q->p("Sending data to Github for " . join(", ", @new_terms)) . "\n";
+			die "No github config found." unless ($github_username && $github_password && $github_url);
+			print $q->p("Submitting suggestion for " . join(", ", @new_terms)) . "\n";
 			# integrate with Github here
 			my $ua = LWP::UserAgent->new;
-			my $github_url = "https://api.github.com/repos/gorbynet/Perl_scripts/issues";
 			my $title = "New thesaurus term suggestion: ";
 			my $body = "Review ID: " . $timestamp;
 			$body .= " Comments: $comments" if $comments;
 			foreach my $t (@new_terms) {
 				my $deposit = join("\n", '{', '"title":"' . $title . ' ' . $t . '",',  '"body":"' . $body . '"'. '}');
 				my $req = HTTP::Request->new('POST', $github_url, [], $deposit);
-				$req->authorization_basic('gorbynet', 'Ttlsh1wwyagb');
+				$req->authorization_basic($github_username, $github_password);
 				my $response = $ua->request($req);
 				unless ($response->is_success()) {
 					print $q->p("Github issue upload failed.") . "\n";
@@ -449,7 +461,7 @@ if (@entities || $validated ||
 					print $q->p($response->as_string) . "\n";
 				}
 				else {
-					print $q->p("Thesaurus suggestion loaded to Github.") . "\n";
+					print $q->p("Thesaurus suggestion submitted successfully.") . "\n";
 				}
 			}
 		}
