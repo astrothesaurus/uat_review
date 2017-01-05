@@ -39,6 +39,25 @@ my $stats_query = <<EOQ;
 	order by ?label ?status
 EOQ
 
+my $comments_query = <<EOQ;
+	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+	PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+	PREFIX ioprdf: <http://rdf.iop.org/>
+	PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+	PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+	SELECT DISTINCT ?doi ?email ?comment ?dateTime WHERE 
+	 {
+	  graph <http://data.iop.org/uat_review> {
+	  ?review ioprdf:hasDOI ?doi .
+	  ?email ioprdf:hasDoneReview ?review .
+	  ?review ioprdf:hasComment ?comment .
+	  ?review ioprdf:hasDateTime ?dateTime .
+	 }
+	}
+	order by ?dateTime ?doi
+EOQ
+
 my $q = CGI->new();
 my $self_url = $q->self_url;
 
@@ -69,11 +88,11 @@ unless ($q->param) {
 }
 elsif ($q->param('csv')) {
 	# get term stats data to CSV
-	# what's a sensible format?
+	
 	my $data = &sparqlQuery($stats_query, $endpoint, $output, $limit);
 	my @data = split("[\n\r]", $data);
 	shift @data;
-	my $content = join("\t", "Term", "Status", "Count");
+	my $content = join("\t", "Term", "Status", "Count") . "\n";
 	$content .= "$_\n" foreach (@data);
 	print "Content-type: text/plain\n" .
 			  "Content-Disposition: attachment; filename=\"uat_feedback.txt\"\n\n";
@@ -85,6 +104,25 @@ elsif ($q->param('nt')) {
 	my $content;
 	print "Content-type: application/rdf+xml\n" .
 			  "Content-Disposition: attachment; filename=\"uat_feedback.nt\"\n\n";
+	print STDOUT $content;
+}
+elsif ($q->param('comments')) {
+	# get a data dump of feedback comments to CSV
+	
+	my $data = &sparqlQuery($comments_query, $endpoint, $output, $limit);
+	my @data = split("[\n\r]", $data);
+	shift @data;
+	my $content = join("\t", "Article", "Reviewer", "Comment", "Date") . "\n";
+	foreach my $line (@data) {
+		my ($doi, $reviewer, $comment, $date) = split ("\t", $line);
+		$reviewer =~ s|http://rdf.iop.org/email/||;
+		$reviewer =~ s|_at_|@|;
+		if ($comment) {
+			$content .= join("\t", $doi, $reviewer, $comment, $date) . "\n";
+		}
+	}
+	print "Content-type: text/plain\n" .
+			  "Content-Disposition: attachment; filename=\"uat_comments.txt\"\n\n";
 	print STDOUT $content;
 }
 
