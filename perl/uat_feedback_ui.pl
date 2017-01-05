@@ -444,9 +444,9 @@ if (@entities || $validated ||
 				$req->authorization_basic('gorbynet', 'Ttlsh1wwyagb');
 				my $response = $ua->request($req);
 				unless ($response->is_success()) {
-					print STDERR "Github issue upload failed." . "\n";
-					# print STDERR ($deposit) . "\n";
-					# print STDERR ($response) . "\n";
+					print $q->("Github issue upload failed.") . "\n";
+					print $q->($deposit) . "\n";
+					print $q->($response->as_string) . "\n";
 				}
 				else {
 					print $q->p("Thesaurus suggestion loaded to Github.") . "\n";
