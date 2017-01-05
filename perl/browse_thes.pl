@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use CGI qw /:standard/; 
+use CGI::Carp qw /fatalsToBrowser/; 
 use LWP::UserAgent; 
 use strict; 
 # use Data::Dumper;
@@ -10,6 +11,7 @@ use URI::Escape;
 my $q = CGI->new();
 
 my $self_url = $q->url;
+my $base_url = $q->url(-base => 1);
 
 my $output = "text";
 my $endpoint = "http://4store:8080/sparql/";
@@ -136,6 +138,19 @@ my $regex = $q->param('term') || 0;
 
 my $title = "Thesaurus browser";
 $title .= ": $regex" if $regex;
+
+my $thes_js = <<JS;
+
+\$(function() {
+
+	\$( "#term1" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+});	
+JS
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print $q->start_html(
 	-title=>$title, 
@@ -148,7 +163,8 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'},
 		{-type=>'text/javascript', 'src'=>'http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js'},
 		{-type=>'text/javascript', 'src'=>'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js'},
-		{-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'}
+		# {-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'}
+		$thes_js
 		]
 	);
 
@@ -160,7 +176,8 @@ foreach (@graphs) {
 	$labels{$_} = $label;
 }
 @graphs = sort(keys(%labels));
-my $graph = $q->param('graph') || "2016R3";
+
+my $graph = $q->param('graph') || "http://data.iop.org/thesaurus/2016R3";
 
 if ($regex) {
 	$regex =~ s|(['"\/])|\\$1|g;
@@ -186,8 +203,8 @@ else {
 }
 print "<div class=\"container\">\n";
 print "<!-- " . Dump . " -->\n";
-print "<!-- " . (%labels) . "\n" . (@graphs) ." -->\n";
-print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"browse_thes.pl");
+# print "<!-- " . (%labels) . "\n" . (@graphs) ." -->\n";
+print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"$base_url/cgi-bin/browse_thes.pl");
 print '
 <div class="jumbotron" role="alert"><h3>Search the thesaurus</h3>
 	<div class="row">
@@ -241,13 +258,13 @@ my $phrase = " terms found";
 $phrase =~ s/s// if scalar(@terms) == 1;
 print $q->h3(span({-class=>"label label-success"}, (scalar(@terms)). $phrase)) . "\n";
 foreach my $row (@terms) {
-	my ($url, $term) = split("\t", $row);
+	my ($term_url, $term) = split("\t", $row);
 	my ($syns, $nars, $broads, $rels);
 	$term =~ s/"//g;
 	next if $term =~ m/\?label/;
 	next if $term =~ m/^\s*$/;
 	print $q->h1(a{-href=>"$self_url?term=$term&graph=$graph"}, $term)."\n";
-	my ($source) = $url =~ m|http://([^/]+)|;
+	my ($source) = $term_url =~ m|http://([^/]+)|;
 	print $q->p({-class=>'small'}, "Source: $source") . "\n";
 	my $temp_alt_query = $alt_query;
 	$temp_alt_query =~ s/__LABEL__/$term/;

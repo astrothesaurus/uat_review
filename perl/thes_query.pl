@@ -8,6 +8,7 @@ use URI::Escape;
 # use HTML::Entities;
 
 my $q = CGI->new();
+my $base_url = $q->url(-base => 1);
 
 my $output = "text";
 my $endpoint = "http://4store:8080/sparql/";
@@ -92,6 +93,7 @@ if ($regex) {
 	else {
 		print "Status: 404 Not Found\n";
 		print "\n";
+		print "<html><head><title>REGEX 404</title></head><body>" . "<p>" . join("</p>\n</p>", @terms) . "</p>\n</body></html>\n";
 		exit;
 	}
 }
@@ -120,6 +122,7 @@ elsif ($all) {
 	else {
 		print "Status: 404 Not Found\n";
 		print "\n";
+		print "<html><head><title>All 404</title></head><body>$rdf_out</body></html>\n";
 		exit;
 	}
 }
@@ -132,7 +135,7 @@ Content-type: text/html
 <HEAD><TITLE>400 Bad Request</TITLE></HEAD>
 <BODY>
   <H1>Error</H1>
-  <P>No term given for search</P>
+  <P>No term given for search & all not specified</P>
 </BODY>
 </HTML>
 END_OF_HTML

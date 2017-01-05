@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
-use POSIX ();
 use CGI qw/:standard/;
+use CGI::Carp qw/fatalsToBrowser/;
+use POSIX;
 # use LWP::Simple qw/get/;
 use LWP::UserAgent;
 use URI::Escape;
@@ -14,6 +15,18 @@ use MIME::Lite;
 my $ua = LWP::UserAgent->new();
 $ua->agent('ThesTermChecker/' . $ua->_agent);
 $ua->from('michael.roberts@iop.org');
+
+
+#
+# Github configuration
+#
+my ($github_username, $github_password, $github_url);
+open (my $fh, "<", "github_config") or die "No credential file found.";
+while (<$fh>) {
+	$github_username = $1 if m|Username: (.+)|;
+	$github_password = $1 if m|Password: (.+)|;
+	$github_url = $1 if m|URL: (.+)|;
+}
 
 my $doi;
 my $search;
@@ -99,6 +112,31 @@ EOT
 my $q = CGI->new();
 
 my $self_url = $q->self_url;
+my $base_url = $q->url(-base => 1);
+
+my $thes_js = <<JS;
+
+\$(function() {
+
+	\$( "#term1" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+});	
+JS
+
+my $uat_js = <<JS;
+
+\$(function() {
+
+	\$( "#search_term" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/uat_query.pl",
+		 minLength:2
+	});
+});	
+JS
 
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print $q->start_html(
@@ -114,15 +152,20 @@ print $q->start_html(
 		{-type=>'text/javascript', 'src'=>'http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js'},
 		{-type=>'text/javascript', 'src'=>'/js/bootstrap.min.js'},
 		{-type=>'text/javascript', 'src'=>'/js/css3-mediaqueries.js'},
-		{-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'},
-		{-type=>'text/javascript', 'src'=>'/js/uat_autocomplete.js'},
+		# {-type=>'text/javascript', 'src'=>'/js/feedback_autocomplete.js'},
+		# {-type=>'text/javascript', 'src'=>'/js/uat_autocomplete.js'},
 		{-type=>'text/javascript', 'src'=>'/js/validate_form.js'},
-		{-type=>'text/javascript', 'src'=>'/js/toggle.js'}
+		{-type=>'text/javascript', 'src'=>'/js/toggle.js'},
+		$thes_js,
+		$uat_js
 		],
+	# -script=>$js,
 	-meta=>{'X-UA-Compatible'=>'IE=edge'}
+	
 	);
 
 print "<div class=\"container\">\n";
+# print $q->p($base_url) . "\n";
 
 if ($q->param) {
 	$search = $q->param('search_term') || 0;
@@ -169,7 +212,7 @@ if ($q->param) {
 	@entities = $q->param('entities') if $q->param('entities');
 }
 if ($search) {
-	my $result = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+	my $result = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search"); # server-side
 	if ($result) {
 		my @results = $result =~ m|"([^"]+)"[,\]]|gs;
 		if (scalar(@results) == 1) {
@@ -177,7 +220,8 @@ if ($search) {
 				$doi = $search;
 			}
 			else {
-				$doi = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search");
+				# do we ever get here?
+				$doi = get_http("http://localhost/cgi-bin/uat_query.pl?doi=1&term=$search"); # client-side
 				chomp $doi;
 				$doi =~ s|[\[\]"]||g;
 			}
@@ -219,7 +263,7 @@ my (%terms, @terms, @status, %source);
 		
 	my ($terms, $status) = get_annotations($doi);
 	if ($terms) {
-		my $lookup = get_http("http://uat/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1");
+		my $lookup = get_http("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&all=1"); #  server-side
 		if ($lookup) {
 			$lookup =~ s|[\[\]]||gs;
 			my @thes_terms = $lookup =~ m|"(.*?)"[,\]]|gs;
@@ -228,6 +272,9 @@ my (%terms, @terms, @status, %source);
 				my ($t, $s) = ($thes_terms[$i], $sources[$i]);
 				$source{$t} = $s =~ m|astro| ? "UAT" : "IOP";
 			}
+		}
+		else {
+			print $q->h1("Thesaurus lookup failed") . "\n";
 		}
 
 		@terms = @$terms;
@@ -396,25 +443,25 @@ if (@entities || $validated ||
 		}
 
 		if (scalar(@new_terms) > 0) {
-			print $q->p("Sending data to Github for " . join(", ", @new_terms)) . "\n";
+			die "No github config found." unless ($github_username && $github_password && $github_url);
+			print $q->p("Submitting suggestion for " . join(", ", @new_terms)) . "\n";
 			# integrate with Github here
 			my $ua = LWP::UserAgent->new;
-			my $github_url = "https://api.github.com/repos/gorbynet/Perl_scripts/issues";
 			my $title = "New thesaurus term suggestion: ";
 			my $body = "Review ID: " . $timestamp;
 			$body .= " Comments: $comments" if $comments;
 			foreach my $t (@new_terms) {
 				my $deposit = join("\n", '{', '"title":"' . $title . ' ' . $t . '",',  '"body":"' . $body . '"'. '}');
 				my $req = HTTP::Request->new('POST', $github_url, [], $deposit);
-				$req->authorization_basic('gorbynet', 'Ttlsh1wwyagb');
+				$req->authorization_basic($github_username, $github_password);
 				my $response = $ua->request($req);
 				unless ($response->is_success()) {
-					print STDERR "Github issue upload failed." . "\n";
-					# print STDERR ($deposit) . "\n";
-					# print STDERR ($response) . "\n";
+					print $q->p("Github issue upload failed.") . "\n";
+					print $q->p($deposit) . "\n";
+					print $q->p($response->as_string) . "\n";
 				}
 				else {
-					print $q->p("Thesaurus suggestion loaded to Github.") . "\n";
+					print $q->p("Thesaurus suggestion submitted successfully.") . "\n";
 				}
 			}
 		}
@@ -477,7 +524,7 @@ sub format_metadata {
 	print $q->h2($title) . "\n";
 	print $q->p($citation) . "\n";
 	print $q->p($abstract) . "\n";
-	my $iops_url = "http://iopscience.iop.org/article/$doi";
+	my $iops_url = "http://dx.doi.org/$doi";
 	print $q->p("Link to article:", a({-href=>"$iops_url", -target=>'_blank'}, "http://dx.doi.org/$doi")) . "\n";
 	print $q->p(a({-href=>"uat_feedback_ui.pl"}, b("Search for another article"))) . "\n" unless $list;
 	return join("/", $issn);
@@ -519,7 +566,7 @@ sub format_annots {
 			foreach (@terms) {
 				my $s = $source{$_};
 				unless ($s) {
-					my $source = get_http("http://uat/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
+					my $source = get_http("http://localhost/cgi-bin/thes_query.pl?source=1&thes=2016R3&term=$_");
 					$s = $source =~ m|astro| ? "UAT" : "IOP";
 				}
 				if ($fb) {

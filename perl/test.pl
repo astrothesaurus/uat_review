@@ -30,6 +30,20 @@ sub get_http {
 my $result = get_http("http://localhost/cgi-bin/uat_query.pl?term=cho");
 
 if ($result) {
+my $timestamp = strftime("%Y%m%d%H%M%S", localtime(time)) . "_" . int(rand(9999));
+my $subject = "Feedback for article received ($timestamp)";
+my $message = "Test message";
+
+my $from = "uat_feedback\@iop.org";
+my $doi = "Null";
+	&email_alert($doi, 
+		$message,
+		$subject,
+		"michael.roberts\@iop.org",
+		$from
+		);
+
+
 print <<END_OF_HTML;
 Status: 200 OK
 Content-type: text/html
@@ -40,6 +54,7 @@ Content-type: text/html
   <H1>All is good</H1>
   <P>Perl works</P>
   <p>$result</p>
+  <p>$timestamp</p>
 </BODY>
 </HTML>
 END_OF_HTML
@@ -70,4 +85,21 @@ Content-type: text/html
 </BODY>
 </HTML>
 END_OF_HTML
+}
+
+
+sub email_alert {
+	my ($id, $feedback, $subject, $to, $from) = @_;
+
+	my $message = "$feedback";
+
+	my $msg = MIME::Lite->new(
+					 From     => $from,
+					 To       => $to,
+					 Subject  => $subject,
+					 Data     => $message
+					 );
+
+	$msg->send;
+	print "<!-- email sent -->\n";
 }
