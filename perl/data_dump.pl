@@ -18,7 +18,15 @@ $ua->from('michael.roberts@iop.org');
 my $output = "text";
 my $endpoint = "http://4store:8080/sparql/";
 my $limit = -1;
-	
+
+my $all_query = <<EOQ;
+Select distinct ?s ?p ?o where {
+	graph <http://data.iop.org/uat_review> {
+		?s ?p ?o .
+	}
+}
+EOQ
+
 my $stats_query = <<EOQ;
 	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 	PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -84,6 +92,7 @@ unless ($q->param) {
 	print "<div class=\"container\">\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?csv=1"}, "Get term stats CSV file")) . "\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?comments=1"}, "Get comments CSV file")) . "\n";
+	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?nt=1"}, "Get SPARQL dump of entire graph")) . "\n";
 	print "</div>\n";
 	print $q->end_html;
 }
@@ -101,8 +110,10 @@ elsif ($q->param('csv')) {
 }
 elsif ($q->param('nt')) {
 	# get a data dump of the whole database to NT
-	
-	my $content;
+	my $data = &sparqlQuery($all_query, $endpoint, "sparql", $limit);
+	my @data = split("[\n\r]", $data);
+	shift @data;
+	my $content = join("\n", @data);
 	print "Content-type: application/rdf+xml\n" .
 			  "Content-Disposition: attachment; filename=\"uat_feedback.nt\"\n\n";
 	print STDOUT $content;
