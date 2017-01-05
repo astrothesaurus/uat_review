@@ -117,6 +117,11 @@ elsif ($q->param('comments')) {
 		my ($doi, $reviewer, $comment, $date) = split ("\t", $line);
 		$reviewer =~ s|http://rdf.iop.org/email/||;
 		$reviewer =~ s|_at_|@|;
+		$comment =~ s|"||gs;
+		$comment = uri_unescape($comment);
+		$date =~ s|"||gs;
+		$date =~ s|^^<http://www.w3.org/2001/XMLSchema#dateTime>||g;
+		
 		if ($comment) {
 			$content .= join("\t", $doi, $reviewer, $comment, $date) . "\n";
 		}
