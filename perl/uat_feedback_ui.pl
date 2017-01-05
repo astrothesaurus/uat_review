@@ -512,7 +512,7 @@ sub format_metadata {
 	print $q->h2($title) . "\n";
 	print $q->p($citation) . "\n";
 	print $q->p($abstract) . "\n";
-	my $iops_url = "http://iopscience.iop.org/article/$doi";
+	my $iops_url = "http://dx.doi.org/$doi";
 	print $q->p("Link to article:", a({-href=>"$iops_url", -target=>'_blank'}, "http://dx.doi.org/$doi")) . "\n";
 	print $q->p(a({-href=>"uat_feedback_ui.pl"}, b("Search for another article"))) . "\n" unless $list;
 	return join("/", $issn);
