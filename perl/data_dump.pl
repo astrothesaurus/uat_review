@@ -6,8 +6,14 @@ use CGI::Carp qw/fatalsToBrowser/;
 use LWP::UserAgent;
 use URI::Escape;
 
+my $ua = LWP::UserAgent->new();
+$ua->agent('ThesTermChecker/' . $ua->_agent);
+$ua->from('michael.roberts@iop.org');
+
+
 #
 # SPARQL config & query definitions
+# 
 
 my $output = "text";
 my $endpoint = "http://4store:8080/sparql/";
@@ -60,8 +66,6 @@ elsif ($q->param('csv')) {
 	# get data to CSV
 	# what's a sensible format?
 	my $data = &sparqlQuery($stats_query, $endpoint, $output, $limit);
-		$s_q =~ s/</&lt;/g;
-		$s_q =~ s/>/&gt;/g;
 	my @data = split("[\n\r]", $data);
 	shift @data;
 	my $content = join("\t", "Term", "Status", "Count");
@@ -73,7 +77,7 @@ elsif ($q->param('csv')) {
 elsif ($q->param('nt')) {
 	# get a data dump of the whole database to NT
 	# what's a sensible format?
-	
+	my $content;
 	print "Content-type: application/rdf+xml\n" .
 			  "Content-Disposition: attachment; filename=\"uat_feedback.nt\"\n\n";
 	print STDOUT $content;
