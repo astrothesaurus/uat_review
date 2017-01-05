@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use CGI qw /:standard/; 
+use CGI::Carp qw /fatalsToBrowser/; 
 use LWP::UserAgent; 
 use strict; 
 # use Data::Dumper;
@@ -175,7 +176,8 @@ foreach (@graphs) {
 	$labels{$_} = $label;
 }
 @graphs = sort(keys(%labels));
-my $graph = $q->param('graph') || "2016R3";
+
+my $graph = $q->param('graph') || "http://data.iop.org/thesaurus/2016R3";
 
 if ($regex) {
 	$regex =~ s|(['"\/])|\\$1|g;
@@ -201,7 +203,7 @@ else {
 }
 print "<div class=\"container\">\n";
 print "<!-- " . Dump . " -->\n";
-print "<!-- " . (%labels) . "\n" . (@graphs) ." -->\n";
+# print "<!-- " . (%labels) . "\n" . (@graphs) ." -->\n";
 print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"$base_url/cgi-bin/browse_thes.pl");
 print '
 <div class="jumbotron" role="alert"><h3>Search the thesaurus</h3>
