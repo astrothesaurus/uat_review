@@ -16,3 +16,4 @@ The webapp should be available via port 8888 from the 'uat' container
 TODO:
 * Generate full 2016 data dump
 * Transfer data to IOP dropbox account
+* Sanitise iop.org email addresses
