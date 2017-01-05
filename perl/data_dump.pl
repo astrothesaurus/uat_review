@@ -63,47 +63,45 @@ unless ($q->param) {
 		);
 }
 elsif ($q->param('csv')) {
-	# get data to CSV
+	# get term stats data to CSV
 	# what's a sensible format?
 	my $data = &sparqlQuery($stats_query, $endpoint, $output, $limit);
 	my @data = split("[\n\r]", $data);
 	shift @data;
 	my $content = join("\t", "Term", "Status", "Count");
-	$content .= $_ foreach (@data);
+	$content .= "$_\n" foreach (@data);
 	print "Content-type: text/plain\n" .
 			  "Content-Disposition: attachment; filename=\"uat_feedback.txt\"\n\n";
 	print STDOUT $content;
 }
 elsif ($q->param('nt')) {
 	# get a data dump of the whole database to NT
-	# what's a sensible format?
+	
 	my $content;
 	print "Content-type: application/rdf+xml\n" .
 			  "Content-Disposition: attachment; filename=\"uat_feedback.nt\"\n\n";
 	print STDOUT $content;
 }
 
-
-
 sub sparqlQuery() {
 	my $query=shift;
 	my $baseURL=shift;
 	my $format=shift;
-	# my $limit=shift;
-        my %params=(
-                "default-graph" => "", "query" => $query,
-                "debug" => "on", "timeout" => "30000", "output" => $format,
-				"soft-limit" => $limit
-        );
-        my @fragments=();
-        foreach my $k (keys %params) {
-                my $fragment="$k=".CGI::escape($params{$k});
-                push(@fragments,$fragment);
-        }
-        $query=join("&", @fragments);
-        my $sparqlURL="${baseURL}?$query";
-        my $req = HTTP::Request->new(GET => $sparqlURL);
-        my $res = $ua->request($req);
-        my $str=$res->content;
-        return $str;
+	my $limit=shift;
+	my %params=(
+			"default-graph" => "", "query" => $query,
+			"debug" => "on", "timeout" => "30000", "output" => $format,
+			"soft-limit" => $limit
+	);
+	my @fragments=();
+	foreach my $k (keys %params) {
+			my $fragment="$k=".CGI::escape($params{$k});
+			push(@fragments,$fragment);
+	}
+	$query=join("&", @fragments);
+	my $sparqlURL="${baseURL}?$query";
+	my $req = HTTP::Request->new(GET => $sparqlURL);
+	my $res = $ua->request($req);
+	my $str=$res->content;
+	return $str;
 }
