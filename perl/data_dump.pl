@@ -40,6 +40,7 @@ my $stats_query = <<EOQ;
 EOQ
 
 my $q = CGI->new();
+my $self_url = $q->self_url;
 
 unless ($q->param) {
 
@@ -61,6 +62,10 @@ unless ($q->param) {
 		-meta=>{'X-UA-Compatible'=>'IE=edge'}
 		
 		);
+	print "<div class=\"container\">\n";
+	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?csv=1"}, "Get term stats CSV file")) . "\n";
+	print "</div>\n";
+	print $q->end_html;
 }
 elsif ($q->param('csv')) {
 	# get term stats data to CSV
