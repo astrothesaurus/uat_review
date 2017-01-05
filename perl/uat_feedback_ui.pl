@@ -3,7 +3,7 @@
 use strict;
 use CGI qw/:standard/;
 use CGI::Carp qw/fatalsToBrowser/;
-use POSIX ();
+use POSIX;
 # use LWP::Simple qw/get/;
 use LWP::UserAgent;
 use URI::Escape;
