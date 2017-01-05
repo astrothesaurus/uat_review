@@ -24,8 +24,8 @@ my ($github_username, $github_password, $github_url);
 open (my $fh, "<", "github_config") or die $!;
 while (<$fh>) {
 	$github_username = $1 if m|Username: (.+)|;
-	$github_password = $1 if m|Password: (.+)|;;
-	$github_url =  if m|URL: (.+)|;
+	$github_password = $1 if m|Password: (.+)|;
+	$github_url = $1 if m|URL: (.+)|;
 }
 
 my $doi;
