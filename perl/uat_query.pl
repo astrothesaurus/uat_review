@@ -64,7 +64,7 @@ if ($regex) {
 			$c++;
 		}
 		else{
-			my @parts = split("\t", $_);
+			my @parts = split("\t", $term);
 			foreach my $part (@parts) {
 				next unless $part =~ m/\Q$regex/i;
 				$part =~ s|[\n\r]| |gs;
