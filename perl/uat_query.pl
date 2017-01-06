@@ -35,7 +35,7 @@ EOQ
 
 my $regex = $q->param('term') || 0;
 my $exact = $q->param('exact') || 0;
-my $list_limit = $q->param('limit') || 20;
+my $list_limit = $q->param('limit') || 200;
 my $all = $q->param('all') || 20;
 my $doi = $q->param('doi') || 0;
 
@@ -43,23 +43,24 @@ my $doi = $q->param('doi') || 0;
 $regex =~ s|\\\\|\\|g;
 # print STDERR "$regex\n"; # if $regex =~ m/['"\/]/;
 if ($regex) {
-	$query =~ s/__REGEX__/$regex/g;
+	# $query =~ s/__REGEX__/$regex/g;
 	my $rdf_out = &sparqlQuery($query, $endpoint, $output);
 	my @terms = split("[\n\r]",$rdf_out);
 	# print STDERR "UAT query: " . scalar(@terms) . " term matches found\n";
 	$rdf_out = "[";
 	my $c;
-	foreach (@terms) {
-		next if m/\?label/;
-		next if m/^\s*$/;
-		next unless m/\Q$regex/i;
+	foreach my $term (@terms) {
+		next if $term =~ m/\?label/;
+		next if $term =~ m/^\s*$/;
+		next unless $term =~ m/\Q$regex/i;
 		if ($exact) {
 			# print STDERR "exact: $_\n";
-			next unless m/"\Q$regex"/i;
+			next unless $term =~ m/"\Q$regex"/i;
 		}
 		elsif ($doi) {
-			s|<http://dx\.doi\.org/([^>]+).+|"$1"|;
-			$rdf_out .= "$_," unless $rdf_out =~ m/$_/;
+			$term =~ s/\t.+//gs;
+			$term =~s|<http://dx\.doi\.org/([^>]+).+|"$1"|;
+			$rdf_out .= "$term," unless $rdf_out =~ m/$term/;
 			$c++;
 		}
 		else{
