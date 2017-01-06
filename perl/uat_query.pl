@@ -59,7 +59,6 @@ if ($regex) {
 		}
 		elsif ($doi) {
 			s|<http://dx\.doi\.org/([^>]+).+|"$1"|;
-			$rdf_out .= "$_," unless $rdf_out =~ m/$_[,$]/;
 			$c++;
 		}
 		else{
