@@ -59,7 +59,7 @@ if ($regex) {
 		}
 		elsif ($doi) {
 			s|<http://dx\.doi\.org/([^>]+).+|"$1"|;
-			$rdf_out .= "$_," unless $rdf_out =~ m/$_/;
+			$rdf_out .= "$_," unless $rdf_out =~ m/$_,/;
 			$c++;
 		}
 		else{
@@ -103,7 +103,7 @@ elsif ($all) {
 		next if m/^\s*$/;
 		s/([^\t]+).+/$1/;
 		$_ = "\"" . $_ . "\"" unless $_ =~m|^".*"$|;
-		$rdf_out .= "$_," unless $rdf_out =~ m/$_/;
+		$rdf_out .= "$_," unless $rdf_out =~ m/$_,/;
 	}
 	$rdf_out =~ s/,$//;
 	$rdf_out .= "]\n";
