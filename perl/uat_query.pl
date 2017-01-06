@@ -71,7 +71,7 @@ if ($regex) {
 				$part =~ s|http://dx.doi.org/||gs;
 				$part = "\"" . $part . "\"" unless $part =~m|^".*"$|;
 				print STDERR "\n$part\n$rdf_out\n";
-				unless ($rdf_out =~ m/\Q$part/s) {
+				unless ($rdf_out =~ m/\Q$part,/s) {
 					$c++;
 					$rdf_out .= "$part,";
 				}
