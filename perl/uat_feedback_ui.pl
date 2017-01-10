@@ -23,9 +23,9 @@ $ua->from('michael.roberts@iop.org');
 my ($github_username, $github_password, $github_url);
 open (my $fh, "<", "github_config") or die "No credential file found.";
 while (<$fh>) {
-	$github_username = $1 if m|Username: (.+)|;
-	$github_password = $1 if m|Password: (.+)|;
-	$github_url = $1 if m|URL: (.+)|;
+	$github_username = $1 if m|Username: (.+)|i;
+	$github_password = $1 if m|Password: (.+)|i;
+	$github_url = $1 if m|URL: (.+)|i;
 }
 
 my $doi;
