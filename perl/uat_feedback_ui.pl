@@ -607,41 +607,41 @@ sub format_annots {
 	print "</div>\n"; # col-md-6
 	unless ($fb) {
 		print "<div class=\"col-md-6, input-group\">\n";
-		print $q->h3(span({-class=>'label label-info'}, "Step 2: Please add any other terms relevant to the document.")) . "\n";
-		print $q->div({-class=>'btn btn-default mt-1'}, a({-href=>"/cgi-bin/browse_thes.pl", -target=>'_thes'}, "Browse the latest version of the thesaurus.")) . "\n";
-		foreach ("term1", "term2", "term3", "term4", "term5") {
+			print $q->h3(span({-class=>'label label-info'}, "Step 2: Please add any other terms relevant to the document.")) . "\n";
+			print $q->div({-class=>'btn btn-default mt-1'}, a({-href=>"/cgi-bin/browse_thes.pl", -target=>'_thes'}, "Browse the latest version of the thesaurus.")) . "\n";
+			foreach ("term1", "term2", "term3", "term4", "term5") {
+				print "<div class=\"row mt-1\">\n";
+				print $q->div({-class=>'col-md-3'},"Missing term:");
+				print $q->div({-class=>'col-md-3'},textfield(-name=>$_,-size=>50,-id=>$_));
+				print "</div>\n";  # row mt-1
+			}
 			print "<div class=\"row mt-1\">\n";
-			print $q->div({-class=>'col-md-3'},"Missing term:");
-			print $q->div({-class=>'col-md-3'},textfield(-name=>$_,-size=>50,-id=>$_));
-			print "</div>\n";  # row mt-1
-		}
-		print "<div class=\"row mt-1\">\n";
-		print $q->div({-class=>'col-md-3'},"Comments:");
-		print $q->div({-class=>'col-md-3'},textarea(-name=>'comments', -rows=>'5', -columns=>'48'));
-		print "</div>\n"; # row mt-1
-		print "<div class=\"row mt-1\">\n";
-		print "<div class=\"col-md-6\">\n";
-		print $q->h3(span({-class=>'label label-info'}, "Step 3: Please provide contact information.")) . "\n";
-		# print "<div class=\"row mt-1\">\n";
-		print $q->h3(span({-class=>'caption'}, "Please provide an email address if you are happy for representatives of the UAT Steering Committee to contact you with any questions or updates on your feedback. This information will only be used to contact you to discuss your feedback. It will not be used for marketing purposes or disclosed to third parties. Your details will be deleted at the conclusion of the UAT review project.")) . "\n";
-		# print "</div>\n"; #row mt-1
-		print "</div>\n"; #col md 6
-		print "</div>\n"; #row mt-1
-		
-		if ($v) {
-			print "<div class=\"row mt-1\" style=\"background: orange\">" unless $username;
-		}
-		else {
+				print $q->div({-class=>'col-md-3'},"Comments:");
+				print $q->div({-class=>'col-md-3'},textarea(-name=>'comments', -rows=>'5', -columns=>'48'));
+			print "</div>\n"; # row mt-1
 			print "<div class=\"row mt-1\">\n";
-		}
-			print $q->div({-class=>'col-md-3'},"Username/email:");
-			print $q->div({-class=>'col-md-3'},textfield(-name=>'username',-size=>50,-id=>'username'));
-		print "</div>"; # row
-		
-		print $q->hidden(-name=>'doi', -value=>$doi);
-		print $q->hidden(-name=>'validated', -id=>'validated', -value=>$v, -override => 1 );
-		print $q->div({-style=>'text-align: right', -class=>'mt-1'},submit(-class=>'btn btn-success btn-lg mt-1', -name=>'submit', -value=>'Submit annotation feedback')) unless $fb;
-		print $q->div({-style=>'clear: both;'})."\n";
+				print "<div class=\"col-md-3\">\n";
+					print $q->h3(span({-class=>'label label-info'}, "Step 3: Please provide contact information.")) . "\n";
+					# print "<div class=\"row mt-1\">\n";
+					print $q->p(span({-class=>'caption'}, "Please provide an email address if you are happy for representatives of the UAT Steering Committee to contact you with any questions or updates on your feedback. This information will only be used to contact you to discuss your feedback. It will not be used for marketing purposes or disclosed to third parties. Your details will be deleted at the conclusion of the UAT review project.")) . "\n";
+					# print "</div>\n"; #row mt-1
+				print "</div>\n"; #col md 6
+			print "</div>\n"; #row mt-1
+			
+			if ($v) {
+				print "<div class=\"row mt-1\" style=\"background: orange\">" unless $username;
+			}
+			else {
+				print "<div class=\"row mt-1\">\n";
+			}
+				print $q->div({-class=>'col-md-3'},"Username/email:");
+				print $q->div({-class=>'col-md-3'},textfield(-name=>'username',-size=>50,-id=>'username'));
+			print "</div>"; # row
+			
+			print $q->hidden(-name=>'doi', -value=>$doi);
+			print $q->hidden(-name=>'validated', -id=>'validated', -value=>$v, -override => 1 );
+			print $q->div({-style=>'text-align: right', -class=>'mt-1'},submit(-class=>'btn btn-success btn-lg mt-1', -name=>'submit', -value=>'Submit annotation feedback')) unless $fb;
+			print $q->div({-style=>'clear: both;'})."\n";
 		print "</div>\n"; # col
 	}
 	else {
