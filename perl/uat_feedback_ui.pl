@@ -124,6 +124,26 @@ my $thes_js = <<JS;
 		 source:"$base_url/cgi-bin/thes_query.pl",
 		 minLength:2
 	});
+	\$( "#term2" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+	\$( "#term3" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+	\$( "#term4" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
+	\$( "#term5" ).autocomplete(
+	{
+		 source:"$base_url/cgi-bin/thes_query.pl",
+		 minLength:2
+	});
 });	
 JS
 
@@ -697,7 +717,10 @@ sub email_alert {
 	#
 	my ($api_url, $api_key, $topic_arn) = get_sns_credentials();
 	my $req_url = $api_url . "Message=" . uri_escape($message) . "&Subject=" . uri_escape($subject) . "&TopicArn=" . $topic_arn;
-	my $req = HTTP::Request->new('POST', $req_url, 'x-api-key'=>$api_key);
+	my $headers = new HTTP::Headers(
+		'x-api-key' => $api_key
+	);
+	my $req = HTTP::Request->new('POST', $req_url, $headers);
 	#	my $msg = MIME::Lite->new(
 	#					 From     => $from,
 	#					 To       => $to,
