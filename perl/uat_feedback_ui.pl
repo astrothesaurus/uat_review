@@ -11,6 +11,7 @@ use URI::Escape;
 use Encode qw(decode encode);
 use Cwd;
 use MIME::Lite;
+use HTTP::Request;
 
 my $ua = LWP::UserAgent->new();
 $ua->agent('ThesTermChecker/' . $ua->_agent);
@@ -693,16 +694,36 @@ sub email_alert {
 	my ($id, $feedback, $subject, $to, $from) = @_;
 
 	my $message = "$feedback";
+	#
+	my ($api_url, $api_key, $topic_arn) = get_sns_credentials();
+	my $req_url = $api_url . "Message=" . uri_escape($message) . "&Subject=" . uri_escape($subject) . "&TopicArn=" . $topic_arn;
+	my $req = HTTP::Request->new('POST', $req_url, 'x-api-key'=>$api_key);
+	#	my $msg = MIME::Lite->new(
+	#					 From     => $from,
+	#					 To       => $to,
+	#					 Subject  => $subject,
+	#					 Data     => $message
+	#					 );
+	#	$msg->send;
+	my $response = $ua->request($req);
+	if ($response->is_success) {
+		print "<!-- email sent -->\n";
+	}
+	else {
+		warn "Failed to send via SNS: " . $response->as_string();
+	}
+}
 
-	my $msg = MIME::Lite->new(
-					 From     => $from,
-					 To       => $to,
-					 Subject  => $subject,
-					 Data     => $message
-					 );
-
-	$msg->send;
-	print "<!-- email sent -->\n";
+sub get_sns_credentials {
+	open (my $fh, "<", "sns_credentials") or die "No SNS credentials\n";
+	my ($api_url, $api_key, $topic_arn);
+	while (<$fh>) {
+		$api_url = $1 if m|api_url: (.+)|i;
+		$api_key = $1 if m|api_key: (.+)|i;
+		$topic_arn = $1 if m|topic_arn: (.+)|i;
+	}
+	die "No SNS credentials found in file." unless ($api_url && $api_key && $topic_arn);
+	return ($api_url, $api_key, $topic_arn);
 }
 
 sub search_thes {
