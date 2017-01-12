@@ -625,7 +625,7 @@ sub format_annots {
 	print "</div>\n"; # form-group
 	print "</div>\n"; # col-md-6
 	unless ($fb) {
-		print "<div class=\"col-md-6, input-group\">\n";
+		print "<div class=\"col-md-6 input-group\">\n";
 			print $q->h3(span({-class=>'label label-info'}, "Step 2: Please add any other terms relevant to the document.")) . "\n";
 			print $q->div({-class=>'btn btn-default mt-1'}, a({-href=>"/cgi-bin/browse_thes.pl", -target=>'_thes'}, "Browse the latest version of the thesaurus.")) . "\n";
 			foreach ("term1", "term2", "term3", "term4", "term5") {
@@ -664,7 +664,7 @@ sub format_annots {
 		print "</div>\n"; # col
 	}
 	else {
-		print "<div class=\"col-md-6, input-group\">\n";
+		print "<div class=\"col-md-6 input-group\">\n";
 		print $q->h3(span({-class=>'label label-info'}, "Do you agree with the feedback already given?")) . "\n";
 
 		print "<div class=\"row mt-1\">\n";
