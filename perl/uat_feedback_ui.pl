@@ -467,8 +467,9 @@ if (@entities || $validated ||
 			# integrate with Github here
 			my $ua = LWP::UserAgent->new;
 			my $title = "New thesaurus term suggestion: ";
-			my $body = "Review ID: " . $timestamp;
-			$body .= " Comments: $comments" if $comments;
+			my $body = "Review ID: \n" . $timestamp;
+			$body .= " Comments: $comments\n" if $comments;
+			$body .= " DOI: http://dx.doi.org/$doi\n";
 			foreach my $t (@new_terms) {
 				my $deposit = join("\n", '{', '"title":"' . $title . ' ' . $t . '",',  '"body":"' . $body . '"'. '}');
 				my $req = HTTP::Request->new('POST', $github_url, [], $deposit);
