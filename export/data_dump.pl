@@ -67,6 +67,24 @@ my $comments_query = <<EOQ;
 	order by ?dateTime ?doi
 EOQ
 
+my $year_month_query = <<EOQ;
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ioprdf: <http://rdf.iop.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?year ?month (count(distinct ?d) as ?c) WHERE {
+ graph <http://data.iop.org/uat_review> {
+ ?p ioprdf:hasDoneReview ?r .
+ ?r ioprdf:hasDOI ?d .
+ ?r ioprdf:hasDateTime ?date .
+ bind (year(?date) as ?year)
+ bind (month(?date) as ?month)
+}
+}
+group by ?year ?month
+order by ?year ?month
+EOQ
 my $q = CGI->new();
 my $self_url = $q->self_url;
 
@@ -94,6 +112,28 @@ unless ($q->param) {
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?csv=1"}, "Get term stats CSV file")) . "\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?comments=1"}, "Get comments CSV file")) . "\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?nt=1"}, "Get SPARQL dump of entire graph")) . "\n";
+	my $data = sparql_query($year_month_query, $endpoint, $output, $limit);
+	
+	my @data = split ("[\n\r]", $data);
+	shift @data;
+	if (scalar(@data) > 1) {
+		print $q->span({-class=>'col-sm-2'}, "Year") . "\n";		
+		print $q->span({-class=>'col-sm-2'}, "Month") . "\n";		
+		print $q->span({-class=>'col-sm-2'}, "Count") . "\n";	
+		foreach (@data) {
+			my ($year, $month, $count) = split("\t", $_);
+			print "<div class=\"row\">\n";
+			
+			print $q->span({-class=>'col-sm-2'}, $year) . "\n";		
+			print $q->span({-class=>'col-sm-2'}, $month) . "\n";		
+			print $q->span({-class=>'col-sm-2'}, $count) . "\n";		
+			
+			print "</div>\n";
+		}
+	}
+	else {
+		print $q->p("No reviews received yet,") . "\n";
+	}
 	print "</div>\n";
 	print $q->end_html;
 }
