@@ -10,7 +10,7 @@ use URI::Escape;
 # use Data::Dumper;
 use Encode qw(decode encode);
 use Cwd;
-use MIME::Lite;
+# use MIME::Lite;
 use HTTP::Request;
 
 my $ua = LWP::UserAgent->new();
