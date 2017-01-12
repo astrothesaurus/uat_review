@@ -5,15 +5,14 @@ This repository contains the Perl CGI scripts, JavaScript and CSS files for the 
 
 Approach:
 Clone gorbynet/docker-4store
+run dump.sh from that repo. This does the following:
+Stop & remove 4store container if it's already running
 Build 4store instance & run it with a label of '4store'. Expose Port 8080 on container.
 * docker build -t iop/4store .
 * docker run -dit -p8080:8080 --name 4store iop/4store
 
+Configure credentials for Github deposit and SNS notification service in files ./perl/github_config and ./perl/sns_credentials
+
 Run build.sh and run.sh scripts from this repo.
 
-The webapp should be available via port 8888 from the 'uat' container
-
-TODO:
-* Generate full 2016 data dump
-* Transfer data to IOP dropbox account
-* Sanitise iop.org email addresses
+run.sh is now configured to expose uat container port 80 to localhost port 80.
