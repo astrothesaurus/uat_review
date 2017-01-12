@@ -672,7 +672,7 @@ sub format_annots {
 		print $q->div({-class=>'col-md-3'},textarea(-name=>'comments', -rows=>'5', -columns=>'48'));
 		print "</div>\n"; # row mt-1
 		print "<div class=\"row mt-1\">\n";
-		print "<div class=\"col-md-6\">\n";
+		print "<div class=\"col-md-12\">\n";
 		print $q->h3(span({-class=>'label label-info'}, "Please provide contact information.")) . "\n";
 		print "<div class=\"row mt-1\">\n";
 		print $q->div({-class=>'col-md-12 small'},"Please provide an email address if you are happy for representatives of the UAT Steering Committee to contact you with any questions or updates on your feedback. This information will only be used to contact you to discuss your feedback. It will not be used for marketing purposes or disclosed to third parties. Your details will be deleted at the conclusion of the UAT review project.") . "\n";
