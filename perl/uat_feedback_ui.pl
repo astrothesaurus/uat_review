@@ -15,7 +15,7 @@ use HTTP::Request;
 
 my $ua = LWP::UserAgent->new();
 $ua->agent('ThesTermChecker/' . $ua->_agent);
-$ua->from('michael.roberts@iop.org');
+$ua->from('custserv@iop.org');
 
 
 #
@@ -376,13 +376,11 @@ if (@entities || $validated ||
 			$message .= "Feedback review: $submit\n";
 		}
 		$message .= join("\n", "", "Comments:\n  $comments") if $comments;
-		my $from = "uat_feedback\@iop.org";
+		
 		unless (($live) && ($username eq "domex")) {
 			&email_alert($doi, 
 				$message,
-				$subject,
-				"michael.roberts\@iop.org",
-				$from
+				$subject
 				);
 		}
 		
@@ -711,9 +709,9 @@ sub print_form {
 }
 
 sub email_alert {
-	my ($id, $feedback, $subject, $to, $from) = @_;
+	my ($doi, $feedback, $subject) = @_;
 
-	my $message = "$feedback";
+	my $message = "http://dx.doi.org/$doi\n\n$feedback";
 	#
 	my ($api_url, $api_key, $topic_arn) = get_sns_credentials();
 	my $req_url = $api_url . "Message=" . uri_escape($message) . "&Subject=" . uri_escape($subject) . "&TopicArn=" . $topic_arn;
@@ -721,13 +719,6 @@ sub email_alert {
 		'x-api-key' => $api_key
 	);
 	my $req = HTTP::Request->new('POST', $req_url, $headers);
-	#	my $msg = MIME::Lite->new(
-	#					 From     => $from,
-	#					 To       => $to,
-	#					 Subject  => $subject,
-	#					 Data     => $message
-	#					 );
-	#	$msg->send;
 	my $response = $ua->request($req);
 	if ($response->is_success) {
 		print "<!-- email sent -->\n";
