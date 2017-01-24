@@ -15,7 +15,7 @@ RUN apk update && apk add perl-cgi perl-lwp-useragent-determined perl-uri perl-l
 RUN apk add -f perl-dev && apk add build-base gcc make perl-mime-base64 perl-xml-simple perl-digest-hmac perl-mime-tools perl-http-message
 RUN wget http://search.cpan.org/CPAN/authors/id/S/SH/SHERZODR/Net-AWS-SES-0.04.tar.gz && wget http://search.cpan.org/CPAN/authors/id/E/ES/ESAYM/Time-Piece-1.31.tar.gz
 RUN tar -xvf Net-AWS-SES-0.04.tar.gz && tar -xvf Time-Piece-1.31.tar.gz
-RUN cwd && ls
+RUN pwd && ls
 RUN cd ./Time-Piece-1.31 && perl Makefile.PL && make && make -i test && make install
 RUN cd ./Net-AWS-SES-0.04 && perl Makefile.PL && make && make -i test && make install
 #	RUN chmod -R 0555 /usr/local/apache2/cgi-bin
