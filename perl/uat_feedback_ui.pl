@@ -736,7 +736,9 @@ sub email_alert {
 	else {
 		print $q->h1("Error reporting not called") . "\n";
 		print $q->ul(li([$doi, $feedback, $subject, $send_to])) . "\n";
+		my %invalid_addresses;
 		foreach my $to (@email_addresses) {
+			next if $invalid_addresses{$to};
 			print $q->p("Reporting to $to") . "\n";
 			my $r = $ses->send(
 				From    => $email_addresses[0],
@@ -749,7 +751,8 @@ sub email_alert {
 				print $q->p("$to failed") . "\n";
 				print STDERR "Could not deliver the message: " . $r->error_message;
 				unless ($to eq $email_addresses[0]) {
-					email_alert("", "Invalid email address: $to\n" . $r->error_message, "Email sending failed", $email_addresses[0]);
+					# email_alert("", "Invalid email address: $to\n" . $r->error_message, "Email sending failed", $email_addresses[0]);
+					$invalid_addresses{$to} = $r->error_message;
 				}
 				else {
 					die "Couldn't get a valid admin email address\n";
@@ -759,6 +762,9 @@ sub email_alert {
 				print STDERR ("Sent successfully. MessageID: %s\n", $r->message_id);
 			}
 		}
+		my $invalid_list;
+		$invalid_list .= "\t$_ " . $invalid_addresses{$_} ."\n" foreach sort(keys(%invalid_addresses));
+		email_alert("", "Invalid email addresses:\n$invalid_list", "Email sending failed", $email_addresses[0]);
 	}
 }
 
