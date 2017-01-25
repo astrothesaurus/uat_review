@@ -12,6 +12,7 @@ use Encode qw(decode encode);
 use Cwd;
 # use MIME::Lite;
 use HTTP::Request;
+use Net::AWS::SES;
 
 my $ua = LWP::UserAgent->new();
 $ua->agent('ThesTermChecker/' . $ua->_agent);
@@ -22,7 +23,7 @@ $ua->from('custserv@iop.org');
 # Github configuration
 #
 my ($github_username, $github_password, $github_url);
-open (my $fh, "<", "github_config") or die "No credential file found.";
+open (my $fh, "<", "../config/github_config") or die "No credential file found.";
 while (<$fh>) {
 	$github_username = $1 if m|Username: (.+)|i;
 	$github_password = $1 if m|Password: (.+)|i;
@@ -380,7 +381,8 @@ if (@entities || $validated ||
 		unless (($live) && ($username eq "domex")) {
 			&email_alert($doi, 
 				$message,
-				$subject
+				$subject,
+				""
 				);
 		}
 		
@@ -712,35 +714,77 @@ sub print_form {
 }
 
 sub email_alert {
-	my ($doi, $feedback, $subject) = @_;
-
-	my $message = "http://dx.doi.org/$doi\n\n$feedback";
-	#
-	my ($api_url, $api_key, $topic_arn) = get_sns_credentials();
-	my $req_url = $api_url . "Message=" . uri_escape($message) . "&Subject=" . uri_escape($subject) . "&TopicArn=" . $topic_arn;
-	my $headers = new HTTP::Headers(
-		'x-api-key' => $api_key
-	);
-	my $req = HTTP::Request->new('POST', $req_url, $headers);
-	my $response = $ua->request($req);
-	if ($response->is_success) {
-		print "<!-- email sent -->\n";
+	my ($doi, $feedback, $subject, $send_to) = @_;
+	my @email_addresses = get_email_addresses();
+	my $message;
+	$message .= "http://dx.doi.org/$doi\n\n" if $doi;
+	$message .= $feedback;
+	
+	my ($region, $access_key, $secret_key) = get_ses_credentials();
+	my $ses = Net::AWS::SES->new(region => $region, access_key => $access_key, secret_key => $secret_key);
+	if ($send_to) {
+		my $r = $ses->send(
+			From    => $email_addresses[0],
+			To      => $send_to,
+			Subject => $subject,
+			Body    => $message
+		);
 	}
 	else {
-		warn "Failed to send via SNS: " . $response->as_string();
+		my %invalid_addresses;
+		my %valid_addresses;
+		foreach my $to (@email_addresses) {
+			next if $invalid_addresses{$to};
+			next if $valid_addresses{$to};
+			my $r = $ses->send(
+				From    => $email_addresses[0],
+				To      => $to,
+				Subject => $subject,
+				Body    => $message
+			);
+
+			unless ( $r->is_success ) {
+				print STDERR "Could not deliver the message: " . $r->error_message;
+				unless ($to eq $email_addresses[0]) {
+					# email_alert("", "Invalid email address: $to\n" . $r->error_message, "Email sending failed", $email_addresses[0]);
+					$invalid_addresses{$to} = $r->error_message;
+				}
+				else {
+					die "Couldn't get a valid admin email address\n";
+				}
+			}
+			else {
+				print STDERR ("Sent successfully. MessageID: %s\n", $r->message_id);
+					$valid_addresses{$to} = $r->message_id;
+			}
+		}
+		my $invalid_list;
+		$invalid_list .= "\t$_ " . $invalid_addresses{$_} ."\n" foreach sort(keys(%invalid_addresses));
+		email_alert("", "Invalid email addresses:\n$invalid_list", "Email sending failed", $email_addresses[0]);
 	}
 }
 
-sub get_sns_credentials {
-	open (my $fh, "<", "sns_credentials") or die "No SNS credentials\n";
-	my ($api_url, $api_key, $topic_arn);
+sub get_ses_credentials {
+	open (my $fh, "<", "../config/ses_credentials") or die "No SES credentials\n";
+	my ($region, $access_key, $secret_key);
 	while (<$fh>) {
-		$api_url = $1 if m|api_url: (.+)|i;
-		$api_key = $1 if m|api_key: (.+)|i;
-		$topic_arn = $1 if m|topic_arn: (.+)|i;
+		$region = $1 if m|region: (.+)|i;
+		$access_key = $1 if m|access_key: (.+)|i;
+		$secret_key = $1 if m|secret_key: (.+)|i;
 	}
-	die "No SNS credentials found in file." unless ($api_url && $api_key && $topic_arn);
-	return ($api_url, $api_key, $topic_arn);
+	die "No SNS credentials found in file." unless ($region && $access_key && $secret_key);
+	return ($region, $access_key, $secret_key);
+}
+
+sub get_email_addresses {
+	my @e;
+	open (my $fh, "<", "../config/email_addresses") or die "No email address file found\n";
+	while (<$fh>) {
+		chomp;
+		push @e, $_;
+	}
+	die "No email addresses found in file\n" unless scalar(@e) > 0;
+	return @e;
 }
 
 sub search_thes {
