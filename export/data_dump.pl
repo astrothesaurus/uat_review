@@ -192,6 +192,7 @@ elsif ($q->param('comments')) {
 		$reviewer =~ s|_at_|@|;
 		$comment =~ s|"||gs;
 		$comment = uri_unescape($comment);
+		$comment =~ s/[\n\r]/ /gs;
 		$date =~ s|"||gs;
 		$date =~ s|\^\^<http://www.w3.org/2001/XMLSchema#dateTime>||g;
 		
