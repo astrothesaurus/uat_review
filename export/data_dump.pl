@@ -117,9 +117,11 @@ unless ($q->param) {
 	my @data = split ("[\n\r]", $data);
 	shift @data;
 	if (scalar(@data) >= 1) {
+		print "<div class=\"row\">\n";
 		print $q->span({-class=>'col-sm-2'}, "Year") . "\n";		
 		print $q->span({-class=>'col-sm-2'}, "Month") . "\n";		
-		print $q->span({-class=>'col-sm-2'}, "Count") . "\n";	
+		print $q->span({-class=>'col-sm-2'}, "Count") . "\n";			
+		print "</div>\n";
 		foreach (@data) {
 			my ($year, $month, $count) = split("\t", $_);
 			print "<div class=\"row\">\n";
