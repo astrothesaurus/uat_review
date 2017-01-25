@@ -722,9 +722,10 @@ sub email_alert {
 	my $ses = Net::AWS::SES->new(region => $region, access_key => $access_key, secret_key => $secret_key);
 	if ($send_to) {
 		print $q->h1("Error reporting called") . "\n";
+		print $q->ul(li([$doi, $feedback, $subject, $send_to])) . "\n";
 		my $r = $ses->send(
 			From    => $email_addresses[0],
-			To      => $to,
+			To      => $send_to,
 			Subject => $subject,
 			Body    => $message
 		);
