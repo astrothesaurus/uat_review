@@ -379,6 +379,7 @@ if (@entities || $validated ||
 		$message .= join("\n", "", "Comments:\n  $comments") if $comments;
 		
 		unless (($live) && ($username eq "domex")) {
+			print $q->p("Doing email alerting") . "\n";
 			&email_alert($doi, 
 				$message,
 				$subject,
@@ -716,8 +717,10 @@ sub print_form {
 sub email_alert {
 	my ($doi, $feedback, $subject, $send_to) = @_;
 	my @email_addresses = get_email_addresses();
-	my $message = "http://dx.doi.org/$doi\n\n$feedback";
-	#
+	my $message;
+	$message .= "http://dx.doi.org/$doi\n\n" if $doi;
+	$message .= $feedback;
+	
 	my ($region, $access_key, $secret_key) = get_ses_credentials();
 	my $ses = Net::AWS::SES->new(region => $region, access_key => $access_key, secret_key => $secret_key);
 	if ($send_to) {
@@ -734,6 +737,7 @@ sub email_alert {
 		print $q->h1("Error reporting not called") . "\n";
 		print $q->ul(li([$doi, $feedback, $subject, $send_to])) . "\n";
 		foreach my $to (@email_addresses) {
+			print $q->p("Reporting to $to") . "\n";
 			my $r = $ses->send(
 				From    => $email_addresses[0],
 				To      => $to,
@@ -742,6 +746,7 @@ sub email_alert {
 			);
 
 			unless ( $r->is_success ) {
+				print $q->p("$to failed") . "\n";
 				print STDERR "Could not deliver the message: " . $r->error_message;
 				unless ($to eq $email_addresses[0]) {
 					email_alert("", "Invalid email address: $to\n" . $r->error_message, "Email sending failed", $email_addresses[0]);
