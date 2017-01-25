@@ -758,9 +758,11 @@ sub email_alert {
 					$valid_addresses{$to} = $r->message_id;
 			}
 		}
-		my $invalid_list;
-		$invalid_list .= "\t$_ " . $invalid_addresses{$_} ."\n" foreach sort(keys(%invalid_addresses));
-		email_alert("", "Invalid email addresses:\n$invalid_list", "Email sending failed", $email_addresses[0]);
+		if (scalar(keys(%invalid_addresses) > 0)) {
+			my $invalid_list;
+			$invalid_list .= "\t$_ " . $invalid_addresses{$_} ."\n" foreach sort(keys(%invalid_addresses));
+			email_alert("", "Invalid email addresses:\n$invalid_list", "Email sending failed", $email_addresses[0]);
+		}
 	}
 }
 

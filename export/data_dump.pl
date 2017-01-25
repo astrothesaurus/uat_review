@@ -112,14 +112,17 @@ unless ($q->param) {
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?csv=1"}, "Get term stats CSV file")) . "\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?comments=1"}, "Get comments CSV file")) . "\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?nt=1"}, "Get SPARQL dump of entire graph")) . "\n";
-	my $data = sparql_query($year_month_query, $endpoint, $output, $limit);
+	my $data = sparqlQuery($year_month_query, $endpoint, $output, $limit);
 	
 	my @data = split ("[\n\r]", $data);
 	shift @data;
-	if (scalar(@data) > 1) {
+	if (scalar(@data) >= 1) {
+		print $q->h3("Annotation activity statistics") . "\n";
+		print "<div class=\"row\">\n";
 		print $q->span({-class=>'col-sm-2'}, "Year") . "\n";		
 		print $q->span({-class=>'col-sm-2'}, "Month") . "\n";		
-		print $q->span({-class=>'col-sm-2'}, "Count") . "\n";	
+		print $q->span({-class=>'col-sm-2'}, "Count") . "\n";			
+		print "</div>\n";
 		foreach (@data) {
 			my ($year, $month, $count) = split("\t", $_);
 			print "<div class=\"row\">\n";
@@ -132,7 +135,7 @@ unless ($q->param) {
 		}
 	}
 	else {
-		print $q->p("No reviews received yet,") . "\n";
+		print $q->p("No reviews received yet.") . "\n";
 	}
 	print "</div>\n";
 	print $q->end_html;
@@ -189,6 +192,7 @@ elsif ($q->param('comments')) {
 		$reviewer =~ s|_at_|@|;
 		$comment =~ s|"||gs;
 		$comment = uri_unescape($comment);
+		$comment =~ s/[\n\r]/ /gs;
 		$date =~ s|"||gs;
 		$date =~ s|\^\^<http://www.w3.org/2001/XMLSchema#dateTime>||g;
 		
