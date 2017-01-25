@@ -381,7 +381,8 @@ if (@entities || $validated ||
 		unless (($live) && ($username eq "domex")) {
 			&email_alert($doi, 
 				$message,
-				$subject
+				$subject,
+				""
 				);
 		}
 		
@@ -713,25 +714,42 @@ sub print_form {
 }
 
 sub email_alert {
-	my ($doi, $feedback, $subject) = @_;
+	my ($doi, $feedback, $subject, $to) = @_;
 	my @email_addresses = get_email_addresses();
 	my $message = "http://dx.doi.org/$doi\n\n$feedback";
 	#
 	my ($region, $access_key, $secret_key) = get_ses_credentials();
 	my $ses = Net::AWS::SES->new(region => $region, access_key => $access_key, secret_key => $secret_key);
-	foreach my $to (@email_addresses) {
+	if ($to) {
 		my $r = $ses->send(
 			From    => $email_addresses[0],
 			To      => $to,
 			Subject => $subject,
 			Body    => $message
 		);
+	}
+	else {
+		foreach my $to (@email_addresses) {
+			my $r = $ses->send(
+				From    => $email_addresses[0],
+				To      => $to,
+				Subject => $subject,
+				Body    => $message
+			);
 
-		unless ( $r->is_success ) {
-			warn "Could not deliver the message: " . $r->error_message;
+			unless ( $r->is_success ) {
+				print STDERR "Could not deliver the message: " . $r->error_message;
+				unless ($to eq $email_addresses[0]) {
+					email_alert("", "Invalid email address: $to\n" . $r->error_message, "Email sending failed", $email_addresses[0]);
+				}
+				else {
+					die "Couldn't get a valid admin email address\n";
+				}
+			}
+			else {
+				print STDERR ("Sent successfully. MessageID: %s\n", $r->message_id);
+			}
 		}
-
-		printf("Sent successfully. MessageID: %s\n", $r->message_id);
 	}
 }
 
