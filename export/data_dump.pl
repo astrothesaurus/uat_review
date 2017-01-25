@@ -117,6 +117,7 @@ unless ($q->param) {
 	my @data = split ("[\n\r]", $data);
 	shift @data;
 	if (scalar(@data) >= 1) {
+		print $q->h3("Annotation activity statistics") . "\n";
 		print "<div class=\"row\">\n";
 		print $q->span({-class=>'col-sm-2'}, "Year") . "\n";		
 		print $q->span({-class=>'col-sm-2'}, "Month") . "\n";		
