@@ -714,13 +714,14 @@ sub print_form {
 }
 
 sub email_alert {
-	my ($doi, $feedback, $subject, $to) = @_;
+	my ($doi, $feedback, $subject, $send_to) = @_;
 	my @email_addresses = get_email_addresses();
 	my $message = "http://dx.doi.org/$doi\n\n$feedback";
 	#
 	my ($region, $access_key, $secret_key) = get_ses_credentials();
 	my $ses = Net::AWS::SES->new(region => $region, access_key => $access_key, secret_key => $secret_key);
-	if ($to) {
+	if ($send_to) {
+		print $q->h1("Error reporting called") . "\n";
 		my $r = $ses->send(
 			From    => $email_addresses[0],
 			To      => $to,
@@ -729,6 +730,8 @@ sub email_alert {
 		);
 	}
 	else {
+		print $q->h1("Error reporting not called") . "\n";
+		print $q->ul(li([$doi, $feedback, $subject, $send_to])) . "\n";
 		foreach my $to (@email_addresses) {
 			my $r = $ses->send(
 				From    => $email_addresses[0],
