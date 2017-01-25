@@ -116,7 +116,7 @@ unless ($q->param) {
 	
 	my @data = split ("[\n\r]", $data);
 	shift @data;
-	if (scalar(@data) > 1) {
+	if (scalar(@data) >= 1) {
 		print $q->span({-class=>'col-sm-2'}, "Year") . "\n";		
 		print $q->span({-class=>'col-sm-2'}, "Month") . "\n";		
 		print $q->span({-class=>'col-sm-2'}, "Count") . "\n";	
@@ -132,7 +132,7 @@ unless ($q->param) {
 		}
 	}
 	else {
-		print $q->p("No reviews received yet,") . "\n";
+		print $q->p("No reviews received yet.") . "\n";
 	}
 	print "</div>\n";
 	print $q->end_html;
