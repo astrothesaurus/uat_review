@@ -724,7 +724,6 @@ sub email_alert {
 	my ($region, $access_key, $secret_key) = get_ses_credentials();
 	my $ses = Net::AWS::SES->new(region => $region, access_key => $access_key, secret_key => $secret_key);
 	if ($send_to) {
-		print $q->h1("Error reporting called") . "\n";
 		print $q->ul(li([$doi, $feedback, $subject, $send_to])) . "\n";
 		my $r = $ses->send(
 			From    => $email_addresses[0],
@@ -734,12 +733,11 @@ sub email_alert {
 		);
 	}
 	else {
-		print $q->h1("Error reporting not called") . "\n";
-		print $q->ul(li([$doi, $feedback, $subject, $send_to])) . "\n";
 		my %invalid_addresses;
+		my %valid_addresses;
 		foreach my $to (@email_addresses) {
 			next if $invalid_addresses{$to};
-			print $q->p("Reporting to $to") . "\n";
+			next if $valid_addresses{$to};
 			my $r = $ses->send(
 				From    => $email_addresses[0],
 				To      => $to,
@@ -748,7 +746,6 @@ sub email_alert {
 			);
 
 			unless ( $r->is_success ) {
-				print $q->p("$to failed") . "\n";
 				print STDERR "Could not deliver the message: " . $r->error_message;
 				unless ($to eq $email_addresses[0]) {
 					# email_alert("", "Invalid email address: $to\n" . $r->error_message, "Email sending failed", $email_addresses[0]);
@@ -760,6 +757,7 @@ sub email_alert {
 			}
 			else {
 				print STDERR ("Sent successfully. MessageID: %s\n", $r->message_id);
+					$valid_addresses{$to} = $r->message_id;
 			}
 		}
 		my $invalid_list;
