@@ -10,6 +10,7 @@ COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
 COPY ./html /usr/local/apache2/htdocs
 COPY ./perl /usr/local/apache2/cgi-bin
 COPY ./export /usr/local/apache2/export
+COPY ./config /usr/local/apache2/config
 RUN mkdir /var/log/httpd
 RUN apk update && apk add perl-cgi perl-lwp-useragent-determined perl-uri perl-lwp-protocol-https && apk add -f perl-encode
 RUN apk add -f perl-dev && apk add build-base gcc make perl-mime-base64 perl-xml-simple perl-digest-hmac perl-mime-tools perl-http-message

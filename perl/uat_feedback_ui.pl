@@ -23,7 +23,7 @@ $ua->from('custserv@iop.org');
 # Github configuration
 #
 my ($github_username, $github_password, $github_url);
-open (my $fh, "<", "github_config") or die "No credential file found.";
+open (my $fh, "<", "../config/github_config") or die "No credential file found.";
 while (<$fh>) {
 	$github_username = $1 if m|Username: (.+)|i;
 	$github_password = $1 if m|Password: (.+)|i;
@@ -733,16 +733,10 @@ sub email_alert {
 
 		printf("Sent successfully. MessageID: %s\n", $r->message_id);
 	}
-	if ($response->is_success) {
-		print "<!-- email sent -->\n";
-	}
-	else {
-		warn "Failed to send via SNS: " . $response->as_string();
-	}
 }
 
-sub get_sns_credentials {
-	open (my $fh, "<", "ses_credentials") or die "No SES credentials\n";
+sub get_ses_credentials {
+	open (my $fh, "<", "../config/ses_credentials") or die "No SES credentials\n";
 	my ($region, $access_key, $secret_key);
 	while (<$fh>) {
 		$region = $1 if m|region: (.+)|i;
@@ -751,6 +745,17 @@ sub get_sns_credentials {
 	}
 	die "No SNS credentials found in file." unless ($region && $access_key && $secret_key);
 	return ($region, $access_key, $secret_key);
+}
+
+sub get_email_addresses {
+	my @e;
+	open (my $fh, "<", "../config/email_addresses") or die "No email address file found\n";
+	while (<$fh>) {
+		chomp;
+		push @e, $_;
+	}
+	die "No email addresses found in file\n" unless scalar(@e) > 0;
+	return @e;
 }
 
 sub search_thes {
