@@ -379,7 +379,6 @@ if (@entities || $validated ||
 		$message .= join("\n", "", "Comments:\n  $comments") if $comments;
 		
 		unless (($live) && ($username eq "domex")) {
-			print $q->p("Doing email alerting") . "\n";
 			&email_alert($doi, 
 				$message,
 				$subject,
@@ -724,7 +723,6 @@ sub email_alert {
 	my ($region, $access_key, $secret_key) = get_ses_credentials();
 	my $ses = Net::AWS::SES->new(region => $region, access_key => $access_key, secret_key => $secret_key);
 	if ($send_to) {
-		print $q->ul(li([$doi, $feedback, $subject, $send_to])) . "\n";
 		my $r = $ses->send(
 			From    => $email_addresses[0],
 			To      => $send_to,
