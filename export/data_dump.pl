@@ -112,7 +112,7 @@ unless ($q->param) {
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?csv=1"}, "Get term stats CSV file")) . "\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?comments=1"}, "Get comments CSV file")) . "\n";
 	print $q->p({-class=>'btn btn-success btn-lg mt-1'}, a({-href=>"$self_url?nt=1"}, "Get SPARQL dump of entire graph")) . "\n";
-	my $data = sparql_query($year_month_query, $endpoint, $output, $limit);
+	my $data = sparqlQuery($year_month_query, $endpoint, $output, $limit);
 	
 	my @data = split ("[\n\r]", $data);
 	shift @data;
