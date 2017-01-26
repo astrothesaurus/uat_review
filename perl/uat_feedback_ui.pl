@@ -391,7 +391,7 @@ if (@entities || $validated ||
 		unless ($submit =~ m|agree|i) {
 			print $q->p("Thank you for confirming the following entities are correct:", ul(li(\@correct_terms))) . "\n" if scalar(@correct_terms) > 0;
 			print $q->p("Thank you for confirming the following entities were missed:", ul(li(\@missed_terms))) . "\n" if scalar(@missed_terms) > 0;
-			print $q->p("Thank you for confirming the following entities are inappropriate:", ul(li(\@incorrect_terms))) . "\n" if scalar(@incorrect_terms) > 0;
+			print $q->p("Thank you for confirming the following entities are not relevant:", ul(li(\@incorrect_terms))) . "\n" if scalar(@incorrect_terms) > 0;
 		}
 		else {
 			print $q->p("Thank you for providing review of the feedback received.") . "\n";
@@ -574,10 +574,10 @@ sub format_annots {
 		}
 
 		unless ($fb) { 
-			print $q->h3(span({-class=>'label label-info'}, "Step 1: Please tick all the terms that are", u("inappropriate"))) . "\n";
+			print $q->h3(span({-class=>'label label-info'}, "Step 1: Please tick all the terms that are", u("not relevant"))) . "\n";
 		}
 		else {
-			print $q->h3(span({-class=>'label label-info'}, "Feedback received (checked terms are inappropriate)")) . "\n";
+			print $q->h3(span({-class=>'label label-info'}, "Feedback received (checked terms are not relevant)")) . "\n";
 		}
 		
 	}
@@ -705,10 +705,10 @@ sub format_annots {
 }
 
 sub print_form {
-	print $q->h2("Please input search term")."\n";
+	print $q->h1("IoP Annotation Review System")."\n\n";
 	print $q->p("You can search for title, author or DOI")."\n";
 	print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"uat_feedback_ui.pl");
-	print $q->p("Search term: ", textfield(-name=>'search_term', -id=>'search_term', -type=>'text', -rows=>1, -columns=>40, -override=>1)) . "\n"; 
+	print $q->p("Search term: ", textfield(-name=>'search_term', -id=>'search_term', -type=>'text', -rows=>1, -columns=>80, -override=>1)) . "\n"; 
 	print $q->submit(-name=>'submit', -value=>'Submit') . "\n";
 	print $q->end_form;
 }
