@@ -29,3 +29,12 @@
 a.termlist {
     color: #fff;
 }
+
+div.container1 {
+    width:50%;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+}
