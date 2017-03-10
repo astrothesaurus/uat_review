@@ -382,7 +382,8 @@ if (@entities || $validated ||
 			&email_alert($doi, 
 				$message,
 				$subject,
-				""
+				"",
+				$username
 				);
 		}
 		
@@ -706,7 +707,8 @@ sub format_annots {
 
 sub print_form {
 	print $q->h1("IoP Annotation Review System")."\n\n";
-	print $q->p("You can search for title, author or DOI")."\n";
+	print $q->p("Search for title, author or DOI.  For example, try searching for your name.")."\n";
+	print $q->p("Keep in mind, only recent papers from the AJ, ApJ, ApJS, and ApJL are currently indexed in this tool.")."\n";
 	print $q->start_form(-method=>'POST',-enctype=>'multipart/form-data', -action=>"uat_feedback_ui.pl");
 	print $q->p("Search term: ", textfield(-name=>'search_term', -id=>'search_term', -type=>'text', -rows=>1, -columns=>80, -override=>1)) . "\n"; 
 	print $q->submit(-name=>'submit', -value=>'Submit') . "\n";
@@ -714,8 +716,13 @@ sub print_form {
 }
 
 sub email_alert {
-	my ($doi, $feedback, $subject, $send_to) = @_;
+	my ($doi, $feedback, $subject, $send_to, $username) = @_;
 	my @email_addresses = get_email_addresses();
+	# adding in username so they recieve a copy of the email
+	if ($username) {
+		push @email_addresses, $username;
+	} 
+	
 	my $message;
 	$message .= "http://dx.doi.org/$doi\n\n" if $doi;
 	$message .= $feedback;
@@ -761,7 +768,7 @@ sub email_alert {
 		if (scalar(keys(%invalid_addresses) > 0)) {
 			my $invalid_list;
 			$invalid_list .= "\t$_ " . $invalid_addresses{$_} ."\n" foreach sort(keys(%invalid_addresses));
-			email_alert("", "Invalid email addresses:\n$invalid_list", "Email sending failed", $email_addresses[0]);
+			email_alert("", "Invalid email addresses:\n$invalid_list", "Email sending failed", $email_addresses[0], "");
 		}
 	}
 }
